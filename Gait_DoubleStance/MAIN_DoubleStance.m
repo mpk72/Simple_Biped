@@ -13,7 +13,8 @@
 % Cornell University
 %
 % GAIT: 'D'
-% {'Double Stance', 'Single Stance One', 'Single Stance Two'}
+% {'D',             'S1',                'S2',                'F'     }
+% {'Double Stance', 'Single Stance One', 'Single Stance Two', 'Flight'}
 %
 
 %---------------------------------------------------%
@@ -41,39 +42,30 @@ auxdata.phase(1) = 'D';  %Used for plotting and animation
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
 auxdata.animation.timeRate = 0.5;
 
-P.Cst.HipHeight = 0.6;   %(m) Hip is constrained to move at this height
-P.Cst.HipStartPos = 0;   %(m) Hip starts here
-P.Cst.HipEndPos = 0.4;   %(m) Hip moves to here
-
-Bounds.eventgroup(1).lower = [P.Cst.HipStartPos, P.Cst.HipHeight];
-Bounds.eventgroup(1).upper = [P.Cst.HipStartPos, P.Cst.HipHeight];
-
-Bounds.eventgroup(2).lower = [P.Cst.HipEndPos, P.Cst.HipHeight];
-Bounds.eventgroup(2).upper = [P.Cst.HipEndPos, P.Cst.HipHeight];
-
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          State Limits                                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
 LOW = 1; UPP = 2;
 
-LegLength = [0.4, 0.9]; %(m) Bounds on the length of each leg
-StepLength = [0.2, 2*LegLength(LOW)]; %(m) Distance between feet in 'D'
-StepTime = [0.2, 2.0]; %(s) Duration of half of the complete gait cycle
-MaxSwingRate = 5*pi; %(rad/s) Maximum angular rate reachable in swing
+HIP_HEIGHT = 0.7;       %(m) attempt to hold hip at this height
+STANCE_WIDTH = 0.3;     %(m) how far apart are the feet
+MAX_SPEED = 2.0;    %(m/s) how fast can any point move
 
-P.Bnd.State.x = 3*StepLength(UPP)*[-1, 1];  % (m) Foot One horizontal position
-P.Bnd.State.y = [0, 2*LegLength(UPP)];% (m) Foot One vertical position
-P.Bnd.State.th1 = pi*[0,1]; % (rad) Leg One absolute angle
-P.Bnd.State.th2 = pi*[-1,0]; % (rad) Leg Two absolute angle
-P.Bnd.State.L1 = LegLength; % (m) Leg One length
-P.Bnd.State.L2 = LegLength; % (m) Leg Two length
-P.Bnd.State.dx = MaxSwingRate*LegLength(UPP)*[-1,1]; % (m/s) Foot One horizontal velocity
-P.Bnd.State.dy = MaxSwingRate*LegLength(UPP)*[-1,1]; % (m/s) Foot One vertical velocity
-P.Bnd.State.dth1 = MaxSwingRate*[-1,1]; % (rad/s) Leg One absolute angular rate
-P.Bnd.State.dth2 = MaxSwingRate*[-1,1]; % (rad/s) Leg Two absolute angular rate
-P.Bnd.State.dL1 = 10*[-1,1]; % (m/s) Leg One extension rate
-P.Bnd.State.dL2 = 10*[-1,1]; % (m/s) Leg Two extensioin rate
+P.Bnd.State.x0 = [0; STANCE_WIDTH];   	%(m) Hip horizontal position
+P.Bnd.State.y0 = HIP_HEIGHT*[0.7;1.3];      %(m) Hip vertical position
+P.Bnd.State.x1 = [0; 0];                %(m) Foot One horizontal position
+P.Bnd.State.y1 = [0; 0];                %(m) Foot One vertical position
+P.Bnd.State.x2 = STANCE_WIDTH*[1;1];  	%(m) Foot Two horizontal position
+P.Bnd.State.y2 = [0; 0];                %(m) Foot Two vertical position
+
+P.Bnd.State.dx0 = MAX_SPEED*[-1;1];	%(m) Hip horizontal velocity
+P.Bnd.State.dy0 = [0; 0];           %(m) Hip vertical velocity
+P.Bnd.State.dx1 = [0; 0];           %(m) Foot One horizontal velocity
+P.Bnd.State.dy1 = [0; 0];           %(m) Foot One vertical velocity
+P.Bnd.State.dx2 = [0; 0];           %(m) Foot Two horizontal velocity
+P.Bnd.State.dy2 = [0; 0];           %(m) Foot Two vertical velocity
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                        Control Limits                                   %
@@ -82,17 +74,15 @@ P.Bnd.State.dL2 = 10*[-1,1]; % (m/s) Leg Two extensioin rate
 %NOTE - The limits on {T1, T2} must be set to zero when those feet are not
 %in contact with the ground!
 
-Dyn = auxdata.dynamics;
-BipedWeight = Dyn.g*(Dyn.m1 + Dyn.m2 + Dyn.M);
-GravityLegTorque = LegLength(UPP)*Dyn.g*max(Dyn.m1, Dyn.m2);
-FootWidth = 0.08*LegLength(UPP);
-AnkleTorque = FootWidth*Dyn.g*Dyn.M;
+%Fow now, just allow huge motors
+MAX_TORQUE = 10;  %(Nm) 
+MAX_FORCE = 10;   %(N)
 
-P.Bnd.Actuator.F1 = 2*BipedWeight*[-1,1]; % (N) Compresive axial force in Leg One
-P.Bnd.Actuator.F2 = 2*BipedWeight*[-1,1]; % (N) Compresive axial force in Leg Two
-P.Bnd.Actuator.T1 = AnkleTorque*[-1,1]; % (Nm) External torque applied to Leg One
-P.Bnd.Actuator.T2 = AnkleTorque*[-1,1]; % (Nm) External torque applied to Leg Two
-P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1,1]; % (Nm) Torque acting on Leg Two from Leg One
+P.Bnd.Actuator.F1 = MAX_FORCE*[-1;1]; % (N) Compresive axial force in Leg One
+P.Bnd.Actuator.F2 = MAX_FORCE*[-1;1]; % (N) Compresive axial force in Leg Two
+P.Bnd.Actuator.T1 = MAX_TORQUE*[-1;1]; % (Nm) External torque applied to Leg One
+P.Bnd.Actuator.T2 = MAX_TORQUE*[-1;1]; % (Nm) External torque applied to Leg Two
+P.Bnd.Actuator.Thip = MAX_TORQUE*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -101,23 +91,15 @@ P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1,1]; % (Nm) Torque acting on Leg T
 
 P.Bnd.Duration = [0.2,1.0];
 
-%Power calculation taken from actuatorPower.m. sum of individual max power
-maxRobotPower = ...
-    P.Bnd.Actuator.F1(UPP)*P.Bnd.State.dL1(UPP) + ...
-    P.Bnd.Actuator.F2(UPP)*P.Bnd.State.dL2(UPP) + ...
-    P.Bnd.Actuator.T1(UPP)*P.Bnd.State.dth1(UPP) + ...
-    P.Bnd.Actuator.T2(UPP)*P.Bnd.State.dth2(UPP) + ...
-    P.Bnd.Actuator.Thip(UPP)*(P.Bnd.State.dth2(UPP)-P.Bnd.State.dth1(UPP));
-
 %Maximum work that the actuators can produce during each phase
-P.Bnd.Work = [0, maxRobotPower*P.Bnd.Duration(UPP)]; %(J)
+P.Bnd.Work = [0, 1000]; %(J)
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                           Path Constraints                              %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 CoeffFriction = 0.8;  %Between the foot and the ground
-BndContactAngle = atan(CoeffFriction)*[-1,1]; %=atan2(H,V);
+BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -133,33 +115,27 @@ bounds.phase(iphase).initialtime.upper = 0;
 bounds.phase(iphase).finaltime.lower = P.Bnd.Duration(LOW);
 bounds.phase(iphase).finaltime.upper = P.Bnd.Duration(UPP);
 
-bounds.phase(iphase).state.lower = stateBound(:,LOW)';
-bounds.phase(iphase).state.upper = stateBound(:,UPP)';
-bounds.phase(iphase).control.lower = controlBound(:,LOW)';
-bounds.phase(iphase).control.upper = controlBound(:,UPP)';
+bounds.phase(iphase).state.lower = stateBound(LOW,:);
+bounds.phase(iphase).state.upper = stateBound(UPP,:);
+bounds.phase(iphase).control.lower = controlBound(LOW,:);
+bounds.phase(iphase).control.upper = controlBound(UPP,:);
 
 % We want the system to be starting with (x,y)->(0,0), (dx,dy)->(0,0)
-stateTmp = P.Bnd.State;
-stateTmp.x = [0,0];
-stateTmp.y = [0,0];
-stateTmp.dx = [0,0];
-stateTmp.dy = [0,0];
-stateBnd = convert(stateTmp);
-bounds.phase(iphase).initialstate.lower = stateBnd(:,LOW)';
-bounds.phase(iphase).initialstate.upper = stateBnd(:,UPP)';
-
-bounds.phase(iphase).finalstate.lower = stateBound(:,LOW)';
-bounds.phase(iphase).finalstate.upper = stateBound(:,UPP)';
+stateBoundaryConditions = P.Bnd.State;
+stateBoundaryConditions.y0 = HIP_HEIGHT*[1;1];
+stateBoundaryConditions.dx0 = [0;0];
+stateBC = convert(stateBoundaryConditions);
+bounds.phase(iphase).initialstate.lower = stateBC(LOW,:);
+bounds.phase(iphase).initialstate.upper = stateBC(LOW,:);
+bounds.phase(iphase).finalstate.lower = stateBC(UPP,:);
+bounds.phase(iphase).finalstate.upper = stateBC(UPP,:);
 
 % Bounds for the path constraints:
 P.Cst.footOneContactAngle = BndContactAngle;
 P.Cst.footTwoContactAngle = BndContactAngle;
-P.Cst.hipHeight = P.Cst.HipHeight*[1,1];
-P.Cst.footOneVel = [0,0];
-P.Cst.footTwoVel = [0,0];
 path = packConstraints(P.Cst,'D');
-bounds.phase(iphase).path.lower = path(:,LOW)';
-bounds.phase(iphase).path.upper = path(:,UPP)';
+bounds.phase(iphase).path.lower = path(LOW,:);
+bounds.phase(iphase).path.upper = path(UPP,:);
 
 % Give the bounds for the integral (total actuator work) calculation:
 bounds.phase(iphase).integral.lower = P.Bnd.Work(LOW);
@@ -176,40 +152,8 @@ if strcmp(loadFileName,'')   %Use default (bad) guess
     iphase=1;
     
     guess.phase(iphase).time = [0; mean(P.Bnd.Duration)];
-    
-    StanceWidth = 0.4;
-    StanceHeight = 0.6;
-    
-    StartState.x = 0;  % (m) Foot One horizontal position
-    StartState.y = 0;% (m) Foot One vertical position
-    StartState.L1 = 0.7; % (m) Leg One length
-    StartState.L2 = sqrt(StanceWidth^2 + StanceHeight^2); % (m) Leg Two length
-    StartState.th1 = pi/2; % (rad) Leg One absolute angle
-    StartState.th2 = -asin(StartState.L1/StartState.L2); % (rad) Leg Two absolute angle
-    StartState.dx = 0; % (m/s) Foot One horizontal velocity
-    StartState.dy = 0; % (m/s) Foot One vertical velocity
-    StartState.dth1 = 0; % (rad/s) Leg One absolute angular rate
-    StartState.dth2 = 0; % (rad/s) Leg Two absolute angular rate
-    StartState.dL1 = 0; % (m/s) Leg One extension rate
-    StartState.dL2 = 0; % (m/s) Leg Two extensioin rate
-    
-    FinishState.x = 0;  % (m) Foot One horizontal position
-    FinishState.y = 0;% (m) Foot One vertical position
-    FinishState.L1 = sqrt(StanceWidth^2 + StanceHeight^2); % (m) Leg One length
-    FinishState.L2 = 0.7; % (m) Leg Two length
-    FinishState.th1 = asin(FinishState.L2/FinishState.L1); % (rad) Leg One absolute angle
-    FinishState.th2 =-pi/2; % (rad) Leg Two absolute angle
-    FinishState.dx = 0; % (m/s) Foot One horizontal velocity
-    FinishState.dy = 0; % (m/s) Foot One vertical velocity
-    FinishState.dth1 = 0; % (rad/s) Leg One absolute angular rate
-    FinishState.dth2 = 0; % (rad/s) Leg Two absolute angular rate
-    FinishState.dL1 = 0; % (m/s) Leg One extension rate
-    FinishState.dL2 = 0; % (m/s) Leg Two extensioin rate
-    
-    start = convert(StartState);
-    finish = convert(FinishState);
-    
-    guess.phase(iphase).state   = [start';finish'];
+          
+    guess.phase(iphase).state   = stateBC;
     
     meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
     guess.phase(iphase).control = [meanControl; meanControl];

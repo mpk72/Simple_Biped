@@ -7,18 +7,8 @@ function C = packConstraints(Cst,Phase)
 switch Phase
     case 'D'
         C = [...
-            Cst.footOneContactAngle;  %=atan2(H1,V1);
-            Cst.footTwoContactAngle;  %=atan2(H2,V2);
-            ];
-    case 'S1'
-       	C = [...
-            Cst.footOneContactAngle;  %=atan2(H1,V1);
-            Cst.footTwoHeight;  
-            ];
-    case 'S2'
-       	C = [...
-            Cst.footOneHeight; 
-            Cst.footTwoContactAngle;  %=atan2(H2,V2);
+            Cst.footOneContactAngle,...  %=atan2(H1,V1);
+            Cst.footTwoContactAngle,...  %=atan2(H2,V2);
             ];
     otherwise
         error('Invalid mode string!')
