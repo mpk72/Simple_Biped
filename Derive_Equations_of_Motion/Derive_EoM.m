@@ -339,7 +339,6 @@ Dyn.SingleTwo.H1 = sym('0');
 Dyn.SingleTwo.V1 = sym('0');
 
 
-
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                   Solve Double Stance Dynamics                          %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -459,7 +458,6 @@ FileWritingSetup = Make_Struct(Energy,States,Parameters,Directory);
 Write_Energy(FileWritingSetup);
 
 
-
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          Write Power Function                           %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -560,7 +558,7 @@ function Soln = jacobSolve(Equations,Unknowns)
 %
 % MATH:
 %   Equations = 0;                  % By Definition
-%   Equations = A*x + b;            % Assume: form, A independant* of x
+%   Equations = A*x + b;            % Assume: form, A independent of x
 %   A = jacobian(Equations wrt x);  % 
 %   b = Equations - A*x;            %
 %   0 = A*x + b;                    %
