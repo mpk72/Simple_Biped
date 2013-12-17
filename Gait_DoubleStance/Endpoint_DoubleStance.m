@@ -7,6 +7,9 @@ P_cost = input.auxdata.cost;
 %                          Objective Function                             %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%        
 
+switch P_cost.method
+    case 'CoT'
+
 %The objective function to be minimized is the cost of transport (CoT). 
 %   CoT = Work / (Weight*Distance);
 work = input.phase(1).integral;
@@ -21,5 +24,10 @@ distance = startPos - endPos;
 distance = SmoothAbs(distance, P_cost.smoothing.distance) + verySmallNumber;
 output.objective = work/(weight*distance); %Cost of Transport
 
+    case 'squared'
+        output.objective = input.phase(1).integral;
+    otherwise
+        error('Invalid cost metric')
+end
 
 end

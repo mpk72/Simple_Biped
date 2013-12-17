@@ -29,63 +29,84 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = 'oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
 
-%Physical parameters
-auxdata.dynamics.m1 = 0.3;   %(kg) Foot One mass
-auxdata.dynamics.m2 = 0.3;   %(kg) Foot Two mass
-auxdata.dynamics.M = 0.8;    %(kg) Hip Mass
-auxdata.dynamics.g = 9.81;   %(m/s^2) Gravitational acceleration
+LOW = 1; UPP = 2;
 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                        START --  USER DEFINED                           %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
+    %Physical parameters
+    auxdata.dynamics.m1 = 0.3;   %(kg) Foot One mass
+    auxdata.dynamics.m2 = 0.3;   %(kg) Foot Two mass
+    auxdata.dynamics.M = 0.8;    %(kg) Hip Mass
+    auxdata.dynamics.g = 9.81;   %(m/s^2) Gravitational acceleration
 
-%%%% HACK %%%% -- Pass constant states as parameters
+    %Configuration parameters:
+    LEG_LENGTH = [0.3; 1.0];
+    STANCE_WIDTH = 0.4;
+    HIP_HEIGHT = 0.7;
+    DURATION = [0.8; 1.2];
 
-STANCE_WIDTH = 0.4;
+    config.footOne.x = 0;
+    config.footOne.y = 0;
+    config.footTwo.x = STANCE_WIDTH;
+    config.footTwo.y = 0;
 
-auxdata.state.x1 = STANCE_WIDTH;
-auxdata.state.y1 = 0;
-auxdata.state.x2 = 0;
-auxdata.state.y2 = 0;
+    config.hipBnd.x0 = [0; STANCE_WIDTH];
+    config.hipBnd.y0 = LEG_LENGTH;
+    config.hipBnd.dx0 = 3*[-1;1];
+    config.hipBnd.dy0 = 1*[-1;1];
+    
+    config.hipStart.x0 = 0.1*[-1;1];
+    config.hipStart.y0 = HIP_HEIGHT*[0.95;1.05];
+    config.hipStart.dx0 = 0.1*[-1;1];
+    config.hipStart.dy0 = 0.1*[-1;1];
+    
+    config.hipEnd.x0 = STANCE_WIDTH*[0.95;1.05];
+    config.hipEnd.y0 = HIP_HEIGHT*[0.95;1.05];
+    config.hipEnd.dx0 = 0.1*[-1;1];
+    config.hipEnd.dy0 = 0.1*[-1;1];
+    
+
+    auxdata.cost.method = 'squared'; %{'CoT', 'Squared'}
+    auxdata.cost.smoothing.power = 1e-1;
+    auxdata.cost.smoothing.distance = 1e-2;
+    auxdata.cost.negativeWorkCost = 0.5;
+    %  1 = pay full cost for negative work
+    %  0 = negative work is free
+    % -1 = full regeneration
+
+    %enforce friction cone at the contacts
+    CoeffFriction = 0.99;  %Between the foot and the ground
+    BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
+
+    %For animation only:
+    %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
+    auxdata.animation.timeRate = 0.1;
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                        END --  USER DEFINED                             %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+
+auxdata.state.x1 = config.footOne.x;
+auxdata.state.y1 = config.footOne.y;
+auxdata.state.x2 = config.footTwo.x;
+auxdata.state.y2 = config.footTwo.y;
 
 auxdata.state.dx1 = 0;
 auxdata.state.dy1 = 0;
 auxdata.state.dx2 = 0;
 auxdata.state.dy2 = 0;
 
-%%%% DONE %%%%
-
-%auxdata.cost.method = 'squared'; %{'CoT', 'Squared'}
-auxdata.cost.smoothing.power = 1e-1;
-auxdata.cost.smoothing.distance = 1e-2;
-auxdata.cost.negativeWorkCost = 0.5;
-%  1 = pay full cost for negative work
-%  0 = negative work is free
-% -1 = full regeneration
-
 auxdata.phase(1) = 'D';  %Used for plotting and animation
-
-%1 = Real time, 0.5 = slow motion, 2.0 = fast forward
-auxdata.animation.timeRate = 0.5;
-
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                           Path Constraints                              %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-CoeffFriction = 0.8;  %Between the foot and the ground
-BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
-LegLength = [0.6;1.0];   %(m) Length of each leg
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          State Limits                                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-LOW = 1; UPP = 2;
-
-P.Bnd.State.x0 = [0; STANCE_WIDTH];  %(m) Hip Horizontal Position
-P.Bnd.State.y0 = [0.2; 1.2];  %(m) Hip Vertical Position
-
-P.Bnd.State.dx0 = [-2;2];  %(m) Hip Horizontal Velocity
-P.Bnd.State.dy0 = [-2;2];  %(m) Hip Vertical Velocity
+P.Bnd.State = config.hipBnd;  
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                        Control Limits                                   %
@@ -96,8 +117,8 @@ P.Bnd.State.dy0 = [-2;2];  %(m) Hip Vertical Velocity
 
 Dyn = auxdata.dynamics;
 BipedWeight = Dyn.g*(Dyn.m1 + Dyn.m2 + Dyn.M);
-GravityLegTorque = LegLength(UPP)*Dyn.g*max(Dyn.m1, Dyn.m2);
-FootWidth = 0.08*LegLength(UPP);
+GravityLegTorque = LEG_LENGTH(UPP)*Dyn.g*max(Dyn.m1, Dyn.m2);
+FootWidth = 0.08*LEG_LENGTH(UPP);
 AnkleTorque = FootWidth*Dyn.g*Dyn.M;
 
 P.Bnd.Actuator.F1 = 2*BipedWeight*[-1;1]; % (N) Compresive axial force in Leg One
@@ -106,21 +127,31 @@ P.Bnd.Actuator.T1 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg On
 P.Bnd.Actuator.T2 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg Two
 P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
 
+%%%% HACK %%%%  See if torque limits are the issue
+
+P.Bnd.Actuator.F1 = 500*[-1;1]; % (N) Compresive axial force in Leg One
+P.Bnd.Actuator.F2 = 500*[-1;1]; % (N) Compresive axial force in Leg Two
+P.Bnd.Actuator.T1 = 100*[-1;1]; % (Nm) External torque applied to Leg One
+P.Bnd.Actuator.T2 = 100*[-1;1]; % (Nm) External torque applied to Leg Two
+P.Bnd.Actuator.Thip = 100*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
+
+%%%% DONE %%%%
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                  Timing and Cost Function Limits                        %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-P.Bnd.Duration = [0.2;1.0];
+P.Bnd.Duration = DURATION;
 
 %Maximum work that the actuators can produce during each phase
-P.Bnd.Work = [0; 1000]; %(J)
+P.Bnd.Work = [0; 1e6]; %(J)
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                Phase 1  --  D  --  Double Stance                        %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 iphase = 1;
-stateBound = [P.Bnd.State.x0, P.Bnd.State.y0, P.Bnd.State.dx0, P.Bnd.State.dy0];
+stateBound = convertPartial(config.hipBnd,'D');
 controlBound = convert(P.Bnd.Actuator);
 
 %Start at time = 0
@@ -134,17 +165,20 @@ bounds.phase(iphase).state.upper = stateBound(UPP,:);
 bounds.phase(iphase).control.lower = controlBound(LOW,:);
 bounds.phase(iphase).control.upper = controlBound(UPP,:);
 
-bounds.phase(iphase).initialstate.lower = [STANCE_WIDTH, 0.6, -2, -2];
-bounds.phase(iphase).initialstate.upper = [STANCE_WIDTH, 0.7, 2, 2];
 
-bounds.phase(iphase).finalstate.lower = [0, 0.6, -2, -2];
-bounds.phase(iphase).finalstate.upper = [0, 0.7, 2, 2];
+initState = convertPartial(config.hipStart,'D');
+bounds.phase(iphase).initialstate.lower = initState(LOW,:);
+bounds.phase(iphase).initialstate.upper = initState(UPP,:);
+
+finalState = convertPartial(config.hipEnd,'D');
+bounds.phase(iphase).finalstate.lower = finalState(LOW,:);
+bounds.phase(iphase).finalstate.upper = finalState(UPP,:);
 
 % Bounds for the path constraints:
 P.Cst.footOneContactAngle = BndContactAngle;
 P.Cst.footTwoContactAngle = BndContactAngle;
-P.Cst.legOneLength = LegLength;
-P.Cst.legTwoLength = LegLength;
+P.Cst.legOneLength = LEG_LENGTH;
+P.Cst.legTwoLength = LEG_LENGTH;
 path = packConstraints(P.Cst,'D');
 bounds.phase(iphase).path.lower = path(LOW,:);
 bounds.phase(iphase).path.upper = path(UPP,:);
@@ -165,27 +199,21 @@ if strcmp(loadFileName,'')   %Use default (bad) guess
     
     guess.phase(iphase).time = [0; mean(P.Bnd.Duration)];
     
-    P.Guess.State.x0 = [STANCE_WIDTH;0];  %(m) Hip Horizontal Position
-    P.Guess.State.y0 = 0.6*[1;1];  %(m) Hip Vertical Position
-    P.Guess.State.x1 = [0;0];  %(m) Foot One Horizontal Position
-    P.Guess.State.y1 = [0;0];  %(m) Foot One Vertical Position
-    P.Guess.State.x2 = STANCE_WIDTH*[1;1];  %(m) Foot Two Horizontal Position
-    P.Guess.State.y2 = [0;0];  %(m) Foot Two Vertical Position
+    P.Guess.State = [mean(initState,1); mean(finalState,1)];
     
-    P.Guess.State.dx0 = 0.4*[1;1];  %(m) Hip Horizontal Velocity
-    P.Guess.State.dy0 = [0;0];  %(m) Hip Vertical Velocity
-    P.Guess.State.dx1 = [0;0];  %(m) Foot One Horizontal Velocity
-    P.Guess.State.dy1 = [0;0];  %(m) Foot One Vertical Velocity
-    P.Guess.State.dx2 = [0;0];  %(m) Foot Two Horizontal Velocity
-    P.Guess.State.dy2 = [0;0];  %(m) Foot Two Vertical Velocity
+    guess.phase(iphase).state   = P.Guess.State;
     
-    guess.phase(iphase).state   = convert(P.Guess.State);
+    %%%% HACK %%%%
+% %     meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
+% %     guess.phase(iphase).control = [meanControl; meanControl];
+    guess.phase(iphase).control = 0.1*(rand(2,5) - 0.5);
+
+% %     meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
+% %     guess.phase(iphase).integral = meanIntegral;
+    guess.phase(iphase).integral = 100;
+
+    %%%% DONE %%%%
     
-    meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
-    guess.phase(iphase).control = [meanControl; meanControl];
-    
-    meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
-    guess.phase(iphase).integral = meanIntegral;
     
 else  %Load guess from file
     iphase=1;
@@ -209,13 +237,13 @@ setup.nlp.solver = 'ipopt';
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
-setup.mesh.tolerance = 1e-5;
-setup.mesh.maxiteration = 10;
+setup.mesh.tolerance = 1e-2;
+setup.mesh.maxiteration = 3;
 setup.mesh.colpointsmin = 4;
-setup.mesh.colpointsmax = 15;
+setup.mesh.colpointsmax = 8;
 setup.method = 'RPMintegration';
-setup.scales.method = 'automatic-bounds';
-setup.nlp.options.tolerance = 1e-5;
+%setup.scales.method = 'automatic-bounds';
+setup.nlp.options.tolerance = 1e-1;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 ---------------------%
@@ -231,6 +259,9 @@ solution = output.result.solution;
 plotInfo = getPlotInfo(output);
 figNum = 1;
 animation(plotInfo,figNum);
+
+figNums = 2:6;
+plotSolution(plotInfo,figNums);
 
 if output.result.nlpinfo==0   %Then successful
     %Save the solution if desired:

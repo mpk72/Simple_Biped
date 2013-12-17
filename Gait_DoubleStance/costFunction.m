@@ -4,18 +4,30 @@ function cost = costFunction(States, Actuators, Phase, P)
 %of the power going to the actuators. There is some fancy code to allow
 %negative power to be counted in different ways.
 
-Power = actuatorPower(States, Actuators, Phase);
+dim = 2;   %Which dimension to sum the cost across
 
-PowerMatrix = [ Power.legOne,...
-                Power.legTwo,...
-                Power.ankleOne,...
-                Power.ankleTwo,...
-                Power.hip];
-                
-alpha = P.smoothing.power;
-mUpp = 1;  %Cost of positive work
-mLow = P.negativeWorkCost; %Cost of negative work
-dim = 2;  %Sum along the first dimension of the smoothed matrix
-cost = sum(SmoothAbsFancy(PowerMatrix,alpha,mLow,mUpp),dim);
+switch P.method
+    case 'CoT'
+        
+        Power = actuatorPower(States, Actuators, Phase);
+        
+        PowerMatrix = [ Power.legOne,...
+            Power.legTwo,...
+            Power.ankleOne,...
+            Power.ankleTwo,...
+            Power.hip];
+        
+        alpha = P.smoothing.power;
+        mUpp = 1;  %Cost of positive work
+        mLow = P.negativeWorkCost; %Cost of negative work
+        cost = sum(SmoothAbsFancy(PowerMatrix,alpha,mLow,mUpp),dim);
+        
+    case 'squared'
+        
+        cost = sum(Actuators.^2, dim);
+        
+    otherwise
+        error('Invalid cost metric')
+end
 
 end
