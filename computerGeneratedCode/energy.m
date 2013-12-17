@@ -4,7 +4,7 @@ function Energy = energy(States, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Energy()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:18
 %
 %  RETURNS: 
 %   Energy = a struct with fields: 

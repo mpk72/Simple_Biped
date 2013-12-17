@@ -4,7 +4,7 @@ function [dStates, contactForces] = dynamics_singleStanceOne(States, Actuators, 
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_ContinuousDynamics()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:17
 %
 % Dymanics Model: retractable double pendulum biped
 % Motion Phase: Single Stance One
@@ -68,7 +68,7 @@ dStates(:,12) = -(T2.*x0 - T2.*x2 - Thip.*x0 + Thip.*x2 - L2s.*V2 + F2.*L2.*y0 -
 % contactForces(:,2) == V1 == (N) Foot One, vertical contact force
 % contactForces(:,3) == H2 == (N) Foot Two, horizontal contact force
 % contactForces(:,4) == V2 == (N) Foot Two, vertical contact force
-contactForces = zeros(size(States,2),4);
+contactForces = zeros(size(States,1),4);
 contactForces(:,1) = (T1.*y1 - T1.*y0 - Thip.*y0 + Thip.*y1 + F1.*L1.*x0 - F1.*L1.*x1 + L1s.*ddx1.*m1)./L1s;
 contactForces(:,2) = (T1.*x0 - T1.*x1 + Thip.*x0 - Thip.*x1 + F1.*L1.*y0 - F1.*L1.*y1 + L1s.*ddy1.*m1 + L1s.*g.*m1)./L1s;
 contactForces(:,3) = zeros(size(States,1),1);

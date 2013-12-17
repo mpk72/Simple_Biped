@@ -4,7 +4,7 @@ function DataOut = convert(DataIn)
 % Computer Generated File -- DO NOT EDIT
 %
 % This function was created by the function Write_Convert()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:18
 %
 % This function will convert between special structs and matricies. 
 % The input must match exactly with one of the cases below.

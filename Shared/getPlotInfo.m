@@ -20,22 +20,28 @@ for iphase=1:nPhase;
        throw(ME);
     end
     
+    %Format things for plotting:
+    stateDat = output.result.solution.phase(iphase).state;
+    actDat = output.result.solution.phase(iphase).control;
+    phaseDat = output.result.setup.auxdata.state;
+phaseDat.phase = 'D';
+phaseDat.mode = 'gpops_to_dynamics';
+    [States, Actuators] = DataRestructure(stateDat,phaseDat,actDat);
+    
     %Copy the existing solution over to the output
-      plotInfo.data(iphase).time = output.result.solution.phase(iphase).time';
-      plotInfo.data(iphase).state = output.result.solution.phase(iphase).state';
-      plotInfo.data(iphase).control = output.result.solution.phase(iphase).control';
-      plotInfo.data(iphase).integral = output.result.solution.phase(iphase).integral';
+      plotInfo.data(iphase).time = output.result.solution.phase(iphase).time;
+      plotInfo.data(iphase).state = convert(States);
+      plotInfo.data(iphase).control = convert(Actuators);
+      plotInfo.data(iphase).integral = output.result.solution.phase(iphase).integral;
          
     %Get kinematics and energy info:
-    States = plotInfo.data(iphase).state;
     Parameters = output.result.setup.auxdata.dynamics;
-    [Position, Velocity, Energy] = kinematics(States, Parameters);
-    plotInfo.data(iphase).position = Position;
-    plotInfo.data(iphase).velocity = Velocity;
-    plotInfo.data(iphase).energy = Energy;
+    Kinematics = kinematics(States);
+    plotInfo.data(iphase).kinematics = Kinematics;
+    plotInfo.data(iphase).energy = energy(States, Parameters);
     
     %Get the power used by the actuators:
-    Actuators = plotInfo.data(iphase).control;
+    Actuators = output.result.solution.phase(iphase).control;
     Phase = plotInfo.data(iphase).phase(iphase);
     plotInfo.data(iphase).power = actuatorPower(States, Actuators, Phase);
     

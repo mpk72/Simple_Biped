@@ -99,14 +99,14 @@ Color_2 = 'b';
 Color_Hip = 'm';
 
 Time = Data.time;
-Foot1 = Data.position.footOne;
-Foot2 = Data.position.footTwo;
-HipAll = Data.position.hip;
+Foot1 =[Data.state.x1, Data.state.y1];
+Foot2 = [Data.state.x2, Data.state.y2];
+HipAll = [Data.state.x0, Data.state.y0];
 
 %Intepolate to get the right position
-F1 = interp1(Time',Foot1',t','cubic');
-F2 = interp1(Time',Foot2',t','cubic');
-Hip = interp1(Time',HipAll',t','cubic');
+F1 = interp1(Time,Foot1,t,'cubic');
+F2 = interp1(Time,Foot2,t,'cubic');
+Hip = interp1(Time,HipAll,t,'cubic');
 
 clf; hold on;
 
@@ -157,13 +157,13 @@ yMax = -inf;
 
 for iphase = 1:length(Data)
     
-    xDat = [Data(iphase).position.footOne(1,:),...
-        Data(iphase).position.footTwo(1,:),...
-        Data(iphase).position.hip(1,:)];
+    xDat = [Data(iphase).state.x0;
+        Data(iphase).state.x1;
+        Data(iphase).state.x2];
     
-    yDat = [Data(iphase).position.footOne(2,:),...
-        Data(iphase).position.footTwo(2,:),...
-        Data(iphase).position.hip(2,:)];
+    yDat = [Data(iphase).state.y0;
+        Data(iphase).state.y1;
+        Data(iphase).state.y2];
     
     xMinTest = min(xDat);
     if xMinTest < xMin

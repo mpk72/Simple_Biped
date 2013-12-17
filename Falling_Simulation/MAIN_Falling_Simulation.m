@@ -19,7 +19,8 @@ clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 % These parameters are for the physics simulation (not visualization)
 
 P.Sim.nPhases = 25;   %Cycle through 10 random phases
-P.Sim.phaseDuration = [0.8,1.9];   %Bounds on each phase's length
+P.Sim.phaseDuration = [0.7,1.5];   %Bounds on each phase's length
+P.Sim.fallDuration = [0.4,0.8];
 P.Sim.options = odeset('RelTol',1e-8,'AbsTol',1e-8);
 
 P.Sim.springDoublePendulum = true;  
@@ -33,9 +34,9 @@ P.Sim.springDoublePendulum = true;
 
 P.Animation.timeRate = 0.8;  %How fast does simulation time pass?
 P.Animation.zoomScale = 3;   %1 = close fit, >1 = zoom out
-P.Animation.tracking = 0.4;  %0 = jump to next, 1 = continuous tracking
+P.Animation.tracking = 0.35;  %0 = jump to next, 1 = continuous tracking
 
-P.Animation.save = false;    %Save the animation to file?
+P.Animation.save = true;    %Save the animation to file?
 P.Animation.frameRate = 30;   %(frames/s) Only used when saving animation
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -89,7 +90,12 @@ SimDat = cell(P.Sim.nPhases,1);
 for i=1:length(SimDat)
     SimDat{i}.phase = Modes{randi(length(Modes))};
     bndT = P.Sim.phaseDuration;
-    SimDat{i}.duration = bndT(1) + diff(bndT)*rand(1);
+    bndF = P.Sim.fallDuration;
+    if strcmp(SimDat{i}.phase,'F')
+        SimDat{i}.duration =  bndF(1) + diff(bndF)*rand(1);
+    else
+        SimDat{i}.duration = bndT(1) + diff(bndT)*rand(1);
+    end
 end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%

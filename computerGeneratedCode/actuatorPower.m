@@ -4,7 +4,7 @@ function Power = actuatorPower(States, Actuators, Phase)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Power()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:18
 %
 %  ARGUMENTS: 
 %   States = [Nstate x Ntime] matrix of states 

@@ -4,7 +4,7 @@ function [dStates, contactForces] = dynamics_flight(States, Actuators, Parameter
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_ContinuousDynamics()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:17
 %
 % Dymanics Model: retractable double pendulum biped
 % Motion Phase: Flight
@@ -68,7 +68,7 @@ dStates(:,12) = -(T2.*x0 - T2.*x2 - Thip.*x0 + Thip.*x2 - L2s.*V2 + F2.*L2.*y0 -
 % contactForces(:,2) == V1 == (N) Foot One, vertical contact force
 % contactForces(:,3) == H2 == (N) Foot Two, horizontal contact force
 % contactForces(:,4) == V2 == (N) Foot Two, vertical contact force
-contactForces = zeros(size(States,2),4);
+contactForces = zeros(size(States,1),4);
 contactForces(:,1) = zeros(size(States,1),1);
 contactForces(:,2) = zeros(size(States,1),1);
 contactForces(:,3) = zeros(size(States,1),1);

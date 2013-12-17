@@ -4,7 +4,7 @@ function StateAfter = phaseMap(StateBefore,PhaseBefore,PhaseAfter)
 % Computer Generated File -- DO NOT EDIT
 %
 % This function was created by the function Write_PhaseMap()
-% 13-Dec-2013 11:41:00
+% 16-Dec-2013 17:27:18
 %
 % Dymanics Model: retractable double pendulum biped
 % Phases: Flight (F) == Both feet in the air

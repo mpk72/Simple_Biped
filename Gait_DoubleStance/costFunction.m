@@ -6,16 +6,16 @@ function cost = costFunction(States, Actuators, Phase, P)
 
 Power = actuatorPower(States, Actuators, Phase);
 
-PowerMatrix = [ Power.legOne;
-                Power.legTwo;
-                Power.ankleOne;
-                Power.ankleTwo;
+PowerMatrix = [ Power.legOne,...
+                Power.legTwo,...
+                Power.ankleOne,...
+                Power.ankleTwo,...
                 Power.hip];
                 
 alpha = P.smoothing.power;
 mUpp = 1;  %Cost of positive work
 mLow = P.negativeWorkCost; %Cost of negative work
-dim = 1;  %Sum along the first dimension of the smoothed matrix
+dim = 2;  %Sum along the first dimension of the smoothed matrix
 cost = sum(SmoothAbsFancy(PowerMatrix,alpha,mLow,mUpp),dim);
 
 end
