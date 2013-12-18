@@ -133,7 +133,7 @@ dth2 = sym('dth2','real');
 % 
 %  L^2 = x^2 + y^2
 % (d/dt)(L) = (x*dx + y*dy)/L
-% (d/dt)(atan2(x,y)) = (dx*y - x*dy)/L^2
+% (d/dt)(atan2(x,-y)) = -(dx*y - x*dy)/L^2
 %
 
 
@@ -143,10 +143,11 @@ Kinematics.L2 = sqrt(X2^2 + Y2^2);
 Kinematics.dL1 = (X1*dX1 + Y1*dY1)/L1;
 Kinematics.dL2 = (X2*dX2 + Y2*dY2)/L2;
 
-Kinematics.th1 = atan2(X1,Y1);
-Kinematics.th2 = atan2(X2,Y2);
-Kinematics.dth1 = (dX1*Y1 - X1*dY1)/L1^2;
-Kinematics.dth2 = (dX2*Y2 - X2*dY2)/L2^2;
+Kinematics.th1 = atan2(X1,-Y1);
+Kinematics.th2 = atan2(X2,-Y2);
+
+Kinematics.dth1 = -(dX1*Y1 - X1*dY1)/L1^2;
+Kinematics.dth2 = -(dX2*Y2 - X2*dY2)/L2^2;
 
 
 % Unit vectors pointing from the hip to foot one (a1) and it's normal (b1)

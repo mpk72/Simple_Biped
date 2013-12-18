@@ -29,7 +29,7 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadFileName = 'oldSoln.mat';  %'' = use default;   'oldSoln.mat'
 
 LOW = 1; UPP = 2;
 
@@ -44,7 +44,7 @@ LOW = 1; UPP = 2;
     auxdata.dynamics.g = 9.81;   %(m/s^2) Gravitational acceleration
 
     %Configuration parameters:
-    LEG_LENGTH = [0.3; 1.0];
+    LEG_LENGTH = [0.6; 1.0];
     STANCE_WIDTH = 0.4;
     HIP_HEIGHT = 0.7;
     DURATION = [0.8; 1.2];
@@ -70,9 +70,9 @@ LOW = 1; UPP = 2;
     config.hipEnd.dy0 = 0.1*[-1;1];
     
 
-    auxdata.cost.method = 'squared'; %{'CoT', 'Squared'}
-    auxdata.cost.smoothing.power = 1e-1;
-    auxdata.cost.smoothing.distance = 1e-2;
+    auxdata.cost.method = 'Squared'; %{'CoT', 'Squared'}
+    auxdata.cost.smoothing.power = 1;
+    auxdata.cost.smoothing.distance = 1;
     auxdata.cost.negativeWorkCost = 0.5;
     %  1 = pay full cost for negative work
     %  0 = negative work is free
@@ -129,11 +129,11 @@ P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg T
 
 %%%% HACK %%%%  See if torque limits are the issue
 
-P.Bnd.Actuator.F1 = 500*[-1;1]; % (N) Compresive axial force in Leg One
-P.Bnd.Actuator.F2 = 500*[-1;1]; % (N) Compresive axial force in Leg Two
-P.Bnd.Actuator.T1 = 100*[-1;1]; % (Nm) External torque applied to Leg One
-P.Bnd.Actuator.T2 = 100*[-1;1]; % (Nm) External torque applied to Leg Two
-P.Bnd.Actuator.Thip = 100*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
+P.Bnd.Actuator.F1 = 50*[-1;1]; % (N) Compresive axial force in Leg One
+P.Bnd.Actuator.F2 = 50*[-1;1]; % (N) Compresive axial force in Leg Two
+P.Bnd.Actuator.T1 = 50*[-1;1]; % (Nm) External torque applied to Leg One
+P.Bnd.Actuator.T2 = 50*[-1;1]; % (Nm) External torque applied to Leg Two
+P.Bnd.Actuator.Thip = 50*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
 
 %%%% DONE %%%%
 
@@ -145,7 +145,11 @@ P.Bnd.Actuator.Thip = 100*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
 P.Bnd.Duration = DURATION;
 
 %Maximum work that the actuators can produce during each phase
-P.Bnd.Work = [0; 1e6]; %(J)
+if strcmp(auxdata.cost.method,'Squared')
+    P.Bnd.Work = [0; 50]; %(Weird Units)
+elseif strcmp(auxdata.cost.method,'CoT')
+    P.Bnd.Work = [0;25]; %(J)
+end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                Phase 1  --  D  --  Double Stance                        %
@@ -237,13 +241,13 @@ setup.nlp.solver = 'ipopt';
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
-setup.mesh.tolerance = 1e-2;
-setup.mesh.maxiteration = 3;
+setup.mesh.tolerance = 1e-8;
+setup.mesh.maxiteration = 15;
 setup.mesh.colpointsmin = 4;
-setup.mesh.colpointsmax = 8;
+setup.mesh.colpointsmax = 15;
 setup.method = 'RPMintegration';
 %setup.scales.method = 'automatic-bounds';
-setup.nlp.options.tolerance = 1e-1;
+setup.nlp.options.tolerance = 1e-8;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 ---------------------%

@@ -22,7 +22,7 @@ switch P.method
         mLow = P.negativeWorkCost; %Cost of negative work
         cost = sum(SmoothAbsFancy(PowerMatrix,alpha,mLow,mUpp),dim);
         
-    case 'squared'
+    case 'Squared'
         
         cost = sum(Actuators.^2, dim);
         

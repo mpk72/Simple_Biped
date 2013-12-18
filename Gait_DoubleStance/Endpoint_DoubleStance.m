@@ -24,7 +24,7 @@ distance = startPos - endPos;
 distance = SmoothAbs(distance, P_cost.smoothing.distance) + verySmallNumber;
 output.objective = work/(weight*distance); %Cost of Transport
 
-    case 'squared'
+    case 'Squared'
         output.objective = input.phase(1).integral;
     otherwise
         error('Invalid cost metric')

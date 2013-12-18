@@ -4,7 +4,7 @@ function [dStates, contactForces] = dynamics_flight(States, Actuators, Parameter
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_ContinuousDynamics()
-% 16-Dec-2013 17:27:17
+% 17-Dec-2013 18:25:49
 %
 % Dymanics Model: retractable double pendulum biped
 % Motion Phase: Flight
@@ -48,10 +48,10 @@ L1 = ((x0 - x1).^2 + (y0 - y1).^2).^(1./2);
 L2 = ((x0 - x2).^2 + (y0 - y2).^2).^(1./2);
 % dL1 = ((dx0 - dx1)*(x0 - x1) + (dy0 - dy1)*(y0 - y1))/L1;
 % dL2 = ((dx0 - dx2)*(x0 - x2) + (dy0 - dy2)*(y0 - y2))/L2;
-% th1 = atan2(x1 - x0, y1 - y0);
-% th2 = atan2(x2 - x0, y2 - y0);
-% dth1 = -((dy0 - dy1)*(x0 - x1) - (dx0 - dx1)*(y0 - y1))/L1^2;
-% dth2 = -((dy0 - dy2)*(x0 - x2) - (dx0 - dx2)*(y0 - y2))/L2^2;
+% th1 = atan2(x1 - x0, y0 - y1);
+% th2 = atan2(x2 - x0, y0 - y2);
+% dth1 = ((dy0 - dy1)*(x0 - x1) - (dx0 - dx1)*(y0 - y1))/L1^2;
+% dth2 = ((dy0 - dy2)*(x0 - x2) - (dx0 - dx2)*(y0 - y2))/L2^2;
 L1s = L1.^2;
 L2s = L2.^2;
 
