@@ -114,7 +114,6 @@ subplot(3,1,3); hold on;
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 figure(figNums(5)); clf;
 
-%Leg One Angle
 subplot(3,1,1); hold on;
     plot(D.time, D.control.F1, Color_One);
     plot(D.time, D.control.F2, Color_Two);
@@ -134,6 +133,33 @@ subplot(3,1,3)
     title('Hip Torque')
     xlabel('Time (s)')
     ylabel('Torque (Nm)')
+    
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                              Power                                 %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+figure(figNums(6)); clf;
+
+subplot(3,1,1); hold on;
+    plot(D.time, D.power.legOne, Color_One);
+    plot(D.time, D.power.legTwo, Color_Two);
+    title('Leg Axial Power')
+    xlabel('Time (s)')
+    ylabel('Power (W)')
+    legend('Leg One','Leg Two');
+subplot(3,1,2); hold on;
+    plot(D.time, D.power.ankleOne, Color_One);
+    plot(D.time, D.power.ankleTwo, Color_Two);
+    title('Angle Power')
+    xlabel('Time (s)')
+    ylabel('Power (W)')
+    legend('Leg One','Leg Two');
+subplot(3,1,3)
+    plot(D.time, D.power.hip,Color_Hip);
+    title('Hip Power')
+    xlabel('Time (s)')
+    ylabel('Power (W)')
+    
+    
 
 end
 

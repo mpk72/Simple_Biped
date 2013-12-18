@@ -264,7 +264,7 @@ plotInfo = getPlotInfo(output);
 figNum = 1;
 animation(plotInfo,figNum);
 
-figNums = 2:6;
+figNums = 2:7;
 plotSolution(plotInfo,figNums);
 
 if output.result.nlpinfo==0   %Then successful
