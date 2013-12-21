@@ -22,7 +22,7 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadFileName = 'oldSoln.mat';  %'' = use default;   'oldSoln.mat'
 
 LOW = 1; UPP = 2;
 
@@ -227,7 +227,7 @@ setup.functions.endpoint = @Endpoint_DoubleStance;
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
-setup.nlp.solver = 'snopt'; %{'snopt', 'ipopt'};
+setup.nlp.solver = 'ipopt'; %{'snopt', 'ipopt'};
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
