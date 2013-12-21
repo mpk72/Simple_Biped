@@ -1,6 +1,7 @@
 function animation(plotInfo,figNum)
 
-figure(figNum);
+figH = figure(figNum);
+set(figH,'Name','Animation','NumberTitle','off')
 
 P = plotInfo.parameters;
 Data = plotInfo.data;

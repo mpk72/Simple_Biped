@@ -24,7 +24,14 @@ switch P.method
         
     case 'Squared'
         
-        cost = sum(Actuators.^2, dim);
+        Act = convert(Actuators);
+        d = P.pinionRadius;   %Pretend that the force is created by a torque motor with a rack and pinion
+        
+        cost =  (Act.F1*d).^2 + ...
+                (Act.F2*d).^2 + ...
+                Act.T1.^2 + ...
+                Act.T2.^2 + ...
+                Act.Thip.^2;
         
     otherwise
         error('Invalid cost metric')

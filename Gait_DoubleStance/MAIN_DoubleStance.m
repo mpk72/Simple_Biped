@@ -2,13 +2,6 @@
 % Double Stance Test Gait                           %
 %---------------------------------------------------%
 
-
-
-%%%% HACK %%%% The whole project is under testing until further notice
-
-
-
-
 %MAIN_Walking
 %
 % This script set up a simple trajectory optimization that figures out how
@@ -29,7 +22,7 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = 'oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
 
 LOW = 1; UPP = 2;
 
@@ -49,11 +42,23 @@ LOW = 1; UPP = 2;
     HIP_HEIGHT = 0.7;
     DURATION = [0.8; 1.2];
 
+    
+    %Pick which foot is in back:
+    FrontFoot = 'One';
     config.footOne.x = 0;
     config.footOne.y = 0;
-    config.footTwo.x = STANCE_WIDTH;
+    config.footTwo.x = 0;
     config.footTwo.y = 0;
+    switch FrontFoot
+        case 'One'
+            config.footTwo.x = STANCE_WIDTH;
+        case 'Two'
+            config.footOne.x = STANCE_WIDTH;
+        otherwise
+            error('Invalid front foot!')
+    end
 
+    %Bounds on the hip position
     config.hipBnd.x0 = [0; STANCE_WIDTH];
     config.hipBnd.y0 = LEG_LENGTH;
     config.hipBnd.dx0 = 3*[-1;1];
@@ -74,17 +79,18 @@ LOW = 1; UPP = 2;
     auxdata.cost.smoothing.power = 1;
     auxdata.cost.smoothing.distance = 1;
     auxdata.cost.negativeWorkCost = 0.5;
+    auxdata.cost.pinionRadius = 0.05;  %(m)  %Convert force to a torque
     %  1 = pay full cost for negative work
     %  0 = negative work is free
     % -1 = full regeneration
 
     %enforce friction cone at the contacts
-    CoeffFriction = 0.99;  %Between the foot and the ground
+    CoeffFriction = 0.8;  %Between the foot and the ground
     BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 
     %For animation only:
     %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
-    auxdata.animation.timeRate = 0.1;
+    auxdata.animation.timeRate = 0.25;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                        END --  USER DEFINED                             %
@@ -126,16 +132,6 @@ P.Bnd.Actuator.F2 = 2*BipedWeight*[-1;1]; % (N) Compresive axial force in Leg Tw
 P.Bnd.Actuator.T1 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg One
 P.Bnd.Actuator.T2 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg Two
 P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
-
-%%%% HACK %%%%  See if torque limits are the issue
-
-P.Bnd.Actuator.F1 = 50*[-1;1]; % (N) Compresive axial force in Leg One
-P.Bnd.Actuator.F2 = 50*[-1;1]; % (N) Compresive axial force in Leg Two
-P.Bnd.Actuator.T1 = 50*[-1;1]; % (Nm) External torque applied to Leg One
-P.Bnd.Actuator.T2 = 50*[-1;1]; % (Nm) External torque applied to Leg Two
-P.Bnd.Actuator.Thip = 50*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
-
-%%%% DONE %%%%
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -207,17 +203,11 @@ if strcmp(loadFileName,'')   %Use default (bad) guess
     
     guess.phase(iphase).state   = P.Guess.State;
     
-    %%%% HACK %%%%
-% %     meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
-% %     guess.phase(iphase).control = [meanControl; meanControl];
-    guess.phase(iphase).control = 0.1*(rand(2,5) - 0.5);
+    meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
+    guess.phase(iphase).control = [meanControl; meanControl];
 
-% %     meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
-% %     guess.phase(iphase).integral = meanIntegral;
-    guess.phase(iphase).integral = 100;
-
-    %%%% DONE %%%%
-    
+    meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
+    guess.phase(iphase).integral = meanIntegral;  
     
 else  %Load guess from file
     iphase=1;
@@ -237,7 +227,7 @@ setup.functions.endpoint = @Endpoint_DoubleStance;
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
-setup.nlp.solver = 'ipopt';
+setup.nlp.solver = 'snopt'; %{'snopt', 'ipopt'};
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
@@ -264,7 +254,7 @@ plotInfo = getPlotInfo(output);
 figNum = 1;
 animation(plotInfo,figNum);
 
-figNums = 2:7;
+figNums = 2:8;
 plotSolution(plotInfo,figNums);
 
 if output.result.nlpinfo==0   %Then successful
