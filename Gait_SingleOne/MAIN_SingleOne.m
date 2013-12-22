@@ -67,11 +67,6 @@ LOW = 1; UPP = 2;
 %Constant states
 auxdata.constant.x1 = 0;
 auxdata.constant.y1 = 0;
-auxdata.constant.dx1 = 0;
-auxdata.constant.dy1 = 0;
-
-%Constant actuation
-auxdata.constant.T2 = 0;
 
 auxdata.phase{1} = 'S1';  %Used for plotting and animation
 
@@ -219,7 +214,7 @@ end
 %-------------------------------------------------------------------------%
 %------------- Assemble Information into Problem Structure ---------------%
 %-------------------------------------------------------------------------%
-setup.name = 'Gain_Walking';
+setup.name = 'Gait_SingleOne';
 setup.functions.continuous = @Continuous_SingleOne;
 setup.functions.endpoint = @Endpoint_SingleOne;
 setup.auxdata = auxdata;

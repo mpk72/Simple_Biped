@@ -25,38 +25,40 @@ if strcmp(phaseDat.mode,'gpops_to_dynamics')
             
         case 'S1'
             S = convertPartial(stateDat,phaseDat.phase);
-            ONES = ones(size(S.x0));
-            S.x1 = phaseDat.x1*ONES;
-            S.y1 = phaseDat.y1*ONES;
-            S.dx1 = phaseDat.dx1*ONES;
-            S.dy1 = phaseDat.dy1*ONES;
+            S.x1 = phaseDat.x1*ones(size(S.x0));
+            S.y1 = phaseDat.y1*ones(size(S.x0));
+            S.dx1 = zeros(size(S.x0));
+            S.dy1 = zeros(size(S.x0));
             States = convert(S);
             
             A = convertPartial(actDat,phaseDat.phase);
-            A.T2 = phaseDat.T2*ones(size(A.F1));
+            A.T2 = zeros(size(A.F1));
+            Actuators = convert(A);
+            
+        case 'S2'
+            S = convertPartial(stateDat,phaseDat.phase);
+            S.x2 = phaseDat.x2*ones(size(S.x0));
+            S.y2 = phaseDat.y2*ones(size(S.x0));
+            S.dx2 = zeros(size(S.x0));
+            S.dy2 = zeros(size(S.x0));
+            States = convert(S);
+            
+            A = convertPartial(actDat,phaseDat.phase);
+            A.T1 = zeros(size(A.F1));  %Should be no torque
             Actuators = convert(A);
             
         otherwise
             error('Other phases of motion not yet supported')
     end
 elseif strcmp(phaseDat.mode,'dynamics_to_gpops')
-    switch phaseDat.phase
-        case 'D'
-            S = convert(stateDat);
-            States = convertPartial(S,phaseDat.phase);
-            if nargout == 2  %Don't calculate if not needed
-                Actuators = actDat;
-            end
-        case 'S1'
-            S = convert(stateDat);
-            States = convertPartial(S,phaseDat.phase);
-            if nargout == 2  %Don't calculate if not needed
-                A = convert(actDat);
-                Actuators = convertPartial(A,phaseDat.phase);
-            end
-        otherwise
-            error('Other phases of motion not yet supported!')
+    
+    S = convert(stateDat);
+    States = convertPartial(S,phaseDat.phase);
+    if nargout == 2  %Don't calculate if not needed
+        A = convert(actDat);
+        Actuators = convertPartial(A,phaseDat.phase);
     end
+
 else
     error('Reverse conversion not yet supported')
 end
