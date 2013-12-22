@@ -16,8 +16,13 @@ work = input.phase(1).integral;
 weight = P_dyn.g*(P_dyn.m1 + P_dyn.m2 + P_dyn.M);
 verySmallNumber = 1e-6;   %(m) Prevent divide by zero errors
 
+
+%%%% HACK %%%%
+error('Need to fix HACK in calculation for CoT');
+%Need to compute the distance travelled by the center of mass
 startPos = input.phase(1).initialstate(1);
 endPos  = input.phase(1).finalstate(1);
+%%%% DONE %%%%
 
 distance = startPos - endPos;
 %May want to be able to walk backwards, so need absolute value. 

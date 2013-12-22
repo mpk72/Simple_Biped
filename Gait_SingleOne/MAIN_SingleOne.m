@@ -1,18 +1,18 @@
 %---------------------------------------------------%
-% Double Stance Test Gait                           %
+% Single Stance One Test Gait                       %
 %---------------------------------------------------%
 
-%MAIN_DoubleStance
+%MAIN_SingleOne
 %
 % This script set up a simple trajectory optimization that figures out how
-% to move the center of mass of the robot from above one foot to above the
-% other foot in a fixed amount of time.
+% to swing Leg Two from behind the stance Leg One to in front while
+% translating the hip horizontally.
 %
 % Matthew Kelly
-% December 18, 2013
+% December 22, 2013
 % Cornell University
 %
-% GAIT: 'D'
+% GAIT: 'S1'
 % {'D',             'S1',                'S2',                'F'     }
 % {'Double Stance', 'Single Stance One', 'Single Stance Two', 'Flight'}
 %
@@ -38,42 +38,11 @@ LOW = 1; UPP = 2;
 
     %Configuration parameters:
     LEG_LENGTH = [0.6; 1.0];
-    STANCE_WIDTH = 0.4;
+    STEP_LENGTH = [0.3; 0.8];
     HIP_HEIGHT = 0.7;
     DURATION = [0.8; 1.2];
     
-    %Pick which foot is in back:
-    FrontFoot = 'One';
-    config.footOne.x = 0;
-    config.footOne.y = 0;
-    config.footTwo.x = 0;
-    config.footTwo.y = 0;
-    switch FrontFoot
-        case 'One'
-            config.footTwo.x = STANCE_WIDTH;
-        case 'Two'
-            config.footOne.x = STANCE_WIDTH;
-        otherwise
-            error('Invalid front foot!')
-    end
-
-    %Bounds on the hip position
-    config.hipBnd.x0 = [0; STANCE_WIDTH];
-    config.hipBnd.y0 = LEG_LENGTH;
-    config.hipBnd.dx0 = 3*[-1;1];
-    config.hipBnd.dy0 = 1*[-1;1];
-    
-    config.hipStart.x0 = 0.1*[-1;1];
-    config.hipStart.y0 = HIP_HEIGHT*[0.95;1.05];
-    config.hipStart.dx0 = 0.1*[-1;1];
-    config.hipStart.dy0 = 0.1*[-1;1];
-    
-    config.hipEnd.x0 = STANCE_WIDTH*[0.95;1.05];
-    config.hipEnd.y0 = HIP_HEIGHT*[0.95;1.05];
-    config.hipEnd.dx0 = 0.1*[-1;1];
-    config.hipEnd.dy0 = 0.1*[-1;1];
-    
-
+    %COST FUNCTION:
     auxdata.cost.method = 'Squared'; %{'CoT', 'Squared'}
     auxdata.cost.smoothing.power = 1;
     auxdata.cost.smoothing.distance = 1;
@@ -84,7 +53,7 @@ LOW = 1; UPP = 2;
     % -1 = full regeneration
 
     %enforce friction cone at the contacts
-    CoeffFriction = 0.8;  %Between the foot and the ground
+    CoeffFriction = 0.99;  %Between the foot and the ground
     BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 
     %For animation only:
@@ -92,26 +61,58 @@ LOW = 1; UPP = 2;
     auxdata.animation.timeRate = 0.25;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                        END --  USER DEFINED                             %
+%                        Constants in this Phase                             %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-auxdata.constant.x1 = config.footOne.x;
-auxdata.constant.y1 = config.footOne.y;
-auxdata.constant.x2 = config.footTwo.x;
-auxdata.constant.y2 = config.footTwo.y;
-
+%Constant states
+auxdata.constant.x1 = 0;
+auxdata.constant.y1 = 0;
 auxdata.constant.dx1 = 0;
 auxdata.constant.dy1 = 0;
-auxdata.constant.dx2 = 0;
-auxdata.constant.dy2 = 0;
 
-auxdata.phase{1} = 'D';  %Used for plotting and animation
+%Constant actuation
+auxdata.constant.T2 = 0;
+
+auxdata.phase{1} = 'S1';  %Used for plotting and animation
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          State Limits                                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-P.Bnd.State = config.hipBnd;  
+    %Bounds on the hip position
+    P.Bnd.State.x0 = STEP_LENGTH(UPP)*[-1;1];
+    P.Bnd.State.y0 = LEG_LENGTH;
+    P.Bnd.State.dx0 = 3*[-1;1];
+    P.Bnd.State.dy0 = 1*[-1;1];
+    
+    config.initialstate.x0 = STEP_LENGTH(LOW)*[-1.1; -0.9];
+    config.initialstate.y0 = HIP_HEIGHT*[0.95;1.05];
+    config.initialstate.dx0 = 3*[0;1];
+    config.initialstate.dy0 = 1*[0;1];
+    
+    config.finalstate.x0 = STEP_LENGTH(LOW)*[0.9; 1.1];
+    config.finalstate.y0 = HIP_HEIGHT*[0.95;1.05];
+    config.finalstate.dx0 = 3*[0;1];
+    config.finalstate.dy0 = 1*[0;1];
+    
+    
+    %Bounds on the swing foot position
+    P.Bnd.State.x2 = STEP_LENGTH(UPP)*[-1;1];
+    P.Bnd.State.y2 = [0;0.5];
+    P.Bnd.State.dx2 = 3*[-1;1];
+    P.Bnd.State.dy2 = 1*[-1;1];
+    
+    config.initialstate.x2 = STEP_LENGTH(UPP)*[-0.9; -0.7];
+    config.initialstate.y2 = [0;0];
+    config.initialstate.dx2 = 0.7*[-1;1];
+    config.initialstate.dy2 = 0.2*[-1;1];
+    
+    config.finalstate.x2 = STEP_LENGTH(UPP)*[0.7; 0.9];
+    config.finalstate.y2 = [0;0];
+    config.finalstate.dx2 = 0.7*[-1;1];
+    config.finalstate.dy2 = 0.2*[-1;1];
+
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                        Control Limits                                   %
@@ -123,14 +124,13 @@ P.Bnd.State = config.hipBnd;
 Dyn = auxdata.dynamics;
 BipedWeight = Dyn.g*(Dyn.m1 + Dyn.m2 + Dyn.M);
 GravityLegTorque = LEG_LENGTH(UPP)*Dyn.g*max(Dyn.m1, Dyn.m2);
-FootWidth = 0.08*LEG_LENGTH(UPP);
+FootWidth = 0.2*LEG_LENGTH(UPP);   %BIG FEET
 AnkleTorque = FootWidth*Dyn.g*Dyn.M;
 
 P.Bnd.Actuator.F1 = 2*BipedWeight*[-1;1]; % (N) Compresive axial force in Leg One
 P.Bnd.Actuator.F2 = 2*BipedWeight*[-1;1]; % (N) Compresive axial force in Leg Two
 P.Bnd.Actuator.T1 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg One
-P.Bnd.Actuator.T2 = AnkleTorque*[-1;1]; % (Nm) External torque applied to Leg Two
-P.Bnd.Actuator.Thip = 0.5*GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
+P.Bnd.Actuator.Thip = GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg Two from Leg One
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -147,11 +147,11 @@ elseif strcmp(auxdata.cost.method,'CoT')
 end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                Phase 1  --  D  --  Double Stance                        %
+%                Phase 1  --  S1  --  Single Stance One                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 iphase = 1;
-stateBound = convertPartial(config.hipBnd,'D');
-controlBound = convert(P.Bnd.Actuator);
+stateBound = convertPartial(P.Bnd.State,'S1');
+controlBound = convertPartial(P.Bnd.Actuator,'S1');
 
 %Start at time = 0
 bounds.phase(iphase).initialtime.lower = 0;
@@ -165,20 +165,19 @@ bounds.phase(iphase).control.lower = controlBound(LOW,:);
 bounds.phase(iphase).control.upper = controlBound(UPP,:);
 
 
-initState = convertPartial(config.hipStart,'D');
+initState = convertPartial(config.initialstate,'S1');
 bounds.phase(iphase).initialstate.lower = initState(LOW,:);
 bounds.phase(iphase).initialstate.upper = initState(UPP,:);
 
-finalState = convertPartial(config.hipEnd,'D');
+finalState = convertPartial(config.finalstate,'S1');
 bounds.phase(iphase).finalstate.lower = finalState(LOW,:);
 bounds.phase(iphase).finalstate.upper = finalState(UPP,:);
 
 % Bounds for the path constraints:
 P.Cst.footOneContactAngle = BndContactAngle;
-P.Cst.footTwoContactAngle = BndContactAngle;
 P.Cst.legOneLength = LEG_LENGTH;
 P.Cst.legTwoLength = LEG_LENGTH;
-path = packConstraints(P.Cst,'D');
+path = packConstraints(P.Cst,'S1');
 bounds.phase(iphase).path.lower = path(LOW,:);
 bounds.phase(iphase).path.upper = path(UPP,:);
 
@@ -200,7 +199,7 @@ if strcmp(loadFileName,'')   %Use default (bad) guess
     
     P.Guess.State = [mean(initState,1); mean(finalState,1)];
     
-    guess.phase(iphase).state   = P.Guess.State;
+    guess.phase(iphase).state = P.Guess.State;
     
     meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
     guess.phase(iphase).control = [meanControl; meanControl];
@@ -221,8 +220,8 @@ end
 %------------- Assemble Information into Problem Structure ---------------%
 %-------------------------------------------------------------------------%
 setup.name = 'Gain_Walking';
-setup.functions.continuous = @Continuous_DoubleStance;
-setup.functions.endpoint = @Endpoint_DoubleStance;
+setup.functions.continuous = @Continuous_SingleOne;
+setup.functions.endpoint = @Endpoint_SingleOne;
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
@@ -230,13 +229,13 @@ setup.nlp.solver = 'ipopt'; %{'snopt', 'ipopt'};
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
-setup.mesh.tolerance = 1e-8;
-setup.mesh.maxiteration = 15;
+setup.mesh.tolerance = 1e-6;
+setup.mesh.maxiteration = 5;
 setup.mesh.colpointsmin = 4;
 setup.mesh.colpointsmax = 15;
 setup.method = 'RPMintegration';
 %setup.scales.method = 'automatic-bounds';
-setup.nlp.options.tolerance = 1e-8;
+setup.nlp.options.tolerance = 1e-6;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 ---------------------%

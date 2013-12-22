@@ -174,7 +174,7 @@ subplot(3,1,1); hold on;
 subplot(3,1,2); hold on;
     plot(D.time, D.power.ankleOne, Color_One,'LineWidth',LineWidth);
     plot(D.time, D.power.ankleTwo, Color_Two,'LineWidth',LineWidth);
-    title('Angle Power','FontSize',FontSize.title)
+    title('Ankle Power','FontSize',FontSize.title)
      xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Power (W)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
