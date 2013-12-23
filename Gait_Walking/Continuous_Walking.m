@@ -4,78 +4,65 @@ function output = Continuous_Walking(input)
 P_dyn = input.auxdata.dynamics;  
 P_cost = input.auxdata.cost;
 
+Slope = input.auxdata.misc.Ground_Slope;
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %              PHASE 1  --  D  --  Double Stance                          %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-States = input.phase(1).state';  
-Actuators = input.phase(1).control';
-Phase = 'D';
+Phase = 'D'; iphase = 1;
+Step_Length = input.phase(iphase).parameter;
+stateDat = input.phase(iphase).state; 
+actDat = input.phase(iphase).control;
+phaseDat.x1 = Step_Length*cos(Slope);
+phaseDat.y1 = Step_Length*sin(Slope);
+phaseDat.x2 = zeros(size(Step_Length));
+phaseDat.y2 = zeros(size(Step_Length));
+phaseDat.phase = Phase;
+phaseDat.mode = 'gpops_to_dynamics';
+[States, Actuators] = DataRestructure(stateDat,phaseDat,actDat);
 
-[dStates, contactForces] = dynamics_doubleStance(States, Actuators ,P_dyn);
+[dStates, contactForces] = dynamics(States, Actuators ,P_dyn, Phase);
+Kinematics = kinematics(States);
 
 contacts = convert(contactForces);  %Make into a struct
 pathCst.footOneContactAngle = atan2(contacts.H1, contacts.V1);
 pathCst.footTwoContactAngle = atan2(contacts.H2, contacts.V2);
+pathCst.legOneLength = Kinematics.L1;
+pathCst.legTwoLength = Kinematics.L2;
 
-output(1).dynamics = dStates';
-output(1).path = packConstraints(pathCst,Phase)';
-output(1).integrand = costFunction(States, Actuators, Phase, P_cost)'; 
+phaseDat.mode = 'dynamics_to_gpops';
+output(iphase).dynamics = DataRestructure(dStates,phaseDat);
+output(iphase).path = packConstraints(pathCst,Phase);
+output(iphase).integrand = costFunction(States, Actuators, Phase, P_cost); 
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %              PHASE 2  --  S1  --  Single Stance One                     %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-States = input.phase(2).state';  
-Actuators = input.phase(2).control';
-Phase = 'S1';
+Phase = 'S1'; iphase = 2;
+Step_Length = input.phase(iphase).parameter;
+stateDat = input.phase(iphase).state; 
+actDat = input.phase(iphase).control;
+phaseDat.x1 = Step_Length*cos(Slope);
+phaseDat.y1 = Step_Length*sin(Slope);
+phaseDat.phase = Phase;
+phaseDat.mode = 'gpops_to_dynamics';
+[States, Actuators] = DataRestructure(stateDat,phaseDat,actDat);
 
-[dStates, contactForces] = dynamics_singleStanceOne(States, Actuators,P_dyn);
-Position = kinematics(States, P_dyn);
+[dStates, contactForces] = dynamics(States, Actuators ,P_dyn, Phase);
 
-contacts = convert(contactForces);  %Make into a struct
-pathCst.footOneContactAngle = atan2(contacts.H1, contacts.V1);
-pathCst.footTwoHeight = Position.footTwo(2,:);
-
-output(2).dynamics = dStates';
-output(2).path = packConstraints(pathCst,Phase)';
-output(2).integrand = costFunction(States, Actuators, Phase, P_cost)'; 
-
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%              PHASE 3  --  D  --  Double Stance                          %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-
-States = input.phase(3).state';  
-Actuators = input.phase(3).control';
-Phase = 'D';
-
-[dStates, contactForces] = dynamics_doubleStance(States, Actuators,P_dyn);
+Kinematics = kinematics(States);
 
 contacts = convert(contactForces);  %Make into a struct
 pathCst.footOneContactAngle = atan2(contacts.H1, contacts.V1);
-pathCst.footTwoContactAngle = atan2(contacts.H2, contacts.V2);
+pathCst.legOneLength = Kinematics.L1;
+pathCst.legTwoLength = Kinematics.L2;
 
-output(3).dynamics = dStates';
-output(3).path = packConstraints(pathCst,Phase)';
-output(3).integrand = costFunction(States, Actuators, Phase, P_cost)'; 
-
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%              PHASE 4  --  S2  --  Single Stance Two                     %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-
-States = input.phase(4).state';  
-Actuators = input.phase(4).control';
-Phase = 'S2';
-
-[dStates, contactForces] = dynamics_singleStanceTwo(States, Actuators,P_dyn);
-Position = kinematics(States, P_dyn);
-
-contacts = convert(contactForces);  %Make into a struct
-pathCst.footOneHeight = Position.footOne(2,:);
-pathCst.footTwoContactAngle = atan2(contacts.H2, contacts.V2);
-
-output(4).dynamics = dStates';
-output(4).path = packConstraints(pathCst,Phase)';
-output(4).integrand = costFunction(States, Actuators, Phase, P_cost)'; 
+phaseDat.mode = 'dynamics_to_gpops';
+output(iphase).dynamics = DataRestructure(dStates,phaseDat);
+output(iphase).path = packConstraints(pathCst,Phase);
+output(iphase).integrand = costFunction(States, Actuators, Phase, P_cost); 
 
 end

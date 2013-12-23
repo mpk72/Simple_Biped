@@ -8,37 +8,37 @@ if strcmp(phaseDat.mode,'gpops_to_dynamics')
     switch phaseDat.phase
         case 'D'
             S = convertPartial(stateDat,phaseDat.phase);
-            ONES = ones(size(S.x0));
-            S.x1 = phaseDat.x1*ONES;
-            S.y1 = phaseDat.y1*ONES;
-            S.x2 = phaseDat.x2*ONES;
-            S.y2 = phaseDat.y2*ONES;
+            S.x1 = phaseDat.x1;
+            S.y1 = phaseDat.y1;
+            S.x2 = phaseDat.x2;
+            S.y2 = phaseDat.y2;
             
-            S.dx1 = phaseDat.dx1*ONES;
-            S.dy1 = phaseDat.dy1*ONES;
-            S.dx2 = phaseDat.dx2*ONES;
-            S.dy2 = phaseDat.dy2*ONES;
+            S.dx1 = zeros(size(S.x0));
+            S.dy1 = zeros(size(S.x0));
+            S.dx2 = zeros(size(S.x0));
+            S.dy2 = zeros(size(S.x0));
             
             States = convert(S);
-            
-            Actuators = actDat;
-            
+            if nargout==2
+                Actuators = actDat;
+            end
         case 'S1'
             S = convertPartial(stateDat,phaseDat.phase);
-            S.x1 = phaseDat.x1*ones(size(S.x0));
-            S.y1 = phaseDat.y1*ones(size(S.x0));
+            S.x1 = phaseDat.x1;
+            S.y1 = phaseDat.y1;
             S.dx1 = zeros(size(S.x0));
             S.dy1 = zeros(size(S.x0));
             States = convert(S);
             
-            A = convertPartial(actDat,phaseDat.phase);
-            A.T2 = zeros(size(A.F1));
-            Actuators = convert(A);
-            
+            if nargout == 2
+                A = convertPartial(actDat,phaseDat.phase);
+                A.T2 = zeros(size(A.F1));
+                Actuators = convert(A);
+            end
         case 'S2'
             S = convertPartial(stateDat,phaseDat.phase);
-            S.x2 = phaseDat.x2*ones(size(S.x0));
-            S.y2 = phaseDat.y2*ones(size(S.x0));
+            S.x2 = phaseDat.x2;
+            S.y2 = phaseDat.y2;
             S.dx2 = zeros(size(S.x0));
             S.dy2 = zeros(size(S.x0));
             States = convert(S);
@@ -58,7 +58,7 @@ elseif strcmp(phaseDat.mode,'dynamics_to_gpops')
         A = convert(actDat);
         Actuators = convertPartial(A,phaseDat.phase);
     end
-
+    
 else
     error('Reverse conversion not yet supported')
 end

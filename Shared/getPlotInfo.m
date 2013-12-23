@@ -9,6 +9,9 @@ nPhase = length(output.result.setup.auxdata.phase);
 plotInfo.data = zeros(nPhase,0);
 plotInfo.parameters = output.result.setup.auxdata;
 
+Step_Length = output.result.solution.parameter;
+Slope = output.result.setup.auxdata.misc.Ground_Slope;
+
 for iphase=1:nPhase;
     
     %Store the code for the current phase of motion.
@@ -25,7 +28,21 @@ for iphase=1:nPhase;
     %Format things for plotting:
     stateDat = output.result.solution.phase(iphase).state;
     actDat = output.result.solution.phase(iphase).control;
-    phaseDat = output.result.setup.auxdata.constant;
+    
+    switch iphase
+        case 1
+            phaseDat.x1 = Step_Length*cos(Slope);
+            phaseDat.y1 = Step_Length*sin(Slope);
+            phaseDat.x2 = zeros(size(Step_Length));
+            phaseDat.y2 = zeros(size(Step_Length));
+        case 2
+            
+            phaseDat.x1 = Step_Length*cos(Slope);
+            phaseDat.y1 = Step_Length*sin(Slope);
+        otherwise
+            error('Phase not supported!')
+    end
+
     phaseDat.phase = Phase;
     phaseDat.mode = 'gpops_to_dynamics';
     [States, Actuators] = DataRestructure(stateDat,phaseDat,actDat);

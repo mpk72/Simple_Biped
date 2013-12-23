@@ -8,15 +8,15 @@ P_cost = input.auxdata.cost;
 %              PHASE 1  --  D  --  Double Stance                          %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
+Phase = 'D';
 stateDat = input.phase(1).state; 
 actDat = input.phase(1).control;
 phaseDat = input.auxdata.constant;
-phaseDat.phase = 'D';
+phaseDat.phase = Phase;
 phaseDat.mode = 'gpops_to_dynamics';
 [States, Actuators] = DataRestructure(stateDat,phaseDat,actDat);
 
-[dStates, contactForces] = dynamics_doubleStance(States, Actuators ,P_dyn);
-
+[dStates, contactForces] = dynamics(States, Actuators ,P_dyn, Phase);
 Kinematics = kinematics(States);
 
 contacts = convert(contactForces);  %Make into a struct
@@ -27,7 +27,7 @@ pathCst.legTwoLength = Kinematics.L2;
 
 phaseDat.mode = 'dynamics_to_gpops';
 output(1).dynamics = DataRestructure(dStates,phaseDat);
-output(1).path = packConstraints(pathCst,'D');
-output(1).integrand = costFunction(States, Actuators, 'D', P_cost); 
+output(1).path = packConstraints(pathCst,Phase);
+output(1).integrand = costFunction(States, Actuators, Phase, P_cost); 
 
 end

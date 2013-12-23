@@ -27,17 +27,25 @@ end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 function dataOut = convert_D(dataIn)
 if isstruct(dataIn)
-    dataOut = [...
-        dataIn.x0,...
-        dataIn.y0,...
-        dataIn.dx0,...
-        dataIn.dy0,...
-        ];
+    if isfield(dataIn,'x0')   %Then converting a state
+        dataOut = [...
+            dataIn.x0,...
+            dataIn.y0,...
+            dataIn.dx0,...
+            dataIn.dy0,...
+            ];
+    else    %Then converting actuation
+        dataOut = convert(dataIn);   %All actuators are allowed here
+    end
 else
-    dataOut.x0 = dataIn(:,1);
-    dataOut.y0 = dataIn(:,2);
-    dataOut.dx0 = dataIn(:,3);
-    dataOut.dy0 = dataIn(:,4);
+    if size(dataIn,2)==4  %Then states
+        dataOut.x0 = dataIn(:,1);
+        dataOut.y0 = dataIn(:,2);
+        dataOut.dx0 = dataIn(:,3);
+        dataOut.dy0 = dataIn(:,4);
+    else  %Then actuation
+        dataOut = convert(dataIn);  %All actuators are allowed
+    end
 end
 end
 
