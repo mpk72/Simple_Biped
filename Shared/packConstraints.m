@@ -27,7 +27,7 @@ switch Phase
     case 'event_walking'
         %All of these should be constrained to be zero
         C(1).event = Cst.defect_12;  %[1 x 8]
-        C(2).event = Cst.periodic;   %[1 x 7];
+        C(2).event = Cst.periodic;   %[1 x 8];
         C(3).event = Cst.time;       %[1 x 1]
 
     otherwise

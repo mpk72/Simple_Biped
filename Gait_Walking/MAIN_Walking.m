@@ -120,7 +120,7 @@ P.Bnd.Actuator.Thip = 0.8*GravityLegTorque*[-1;1]; % (Nm) Torque acting on Leg T
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
 P.Cst.defect_12 = zeros(1,8);
-P.Cst.periodic = zeros(1,7);
+P.Cst.periodic = zeros(1,8);
 P.Cst.time = zeros(1,1);
 CstData = packConstraints(P.Cst,'event_walking');
 for i=1:length(CstData)
