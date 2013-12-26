@@ -81,10 +81,20 @@ output.eventgroup = packConstraints(event,'event_walking');
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          Objective Function                             %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-if strcmp(input.auxdata.cost.method,'Squared')
-    output.objective = input.phase(1).integral + input.phase(2).integral;
-else
-    error('Unsupported Cost Function');
+switch input.auxdata.cost.method
+    case 'Squared'
+        output.objective = input.phase(1).integral + input.phase(2).integral;
+    case 'CoT'
+        Work = input.phase(1).integral + input.phase(2).integral;
+        dyn = input.auxdata.dynamics;
+        Mass = dyn.m1 + dyn.m2 + dyn.M;
+        Gravity = dyn.g;
+        output.objective = Work/(StepLength*Mass*Gravity);
+    case 'CoT2'
+        Work2 = input.phase(1).integral + input.phase(2).integral;
+        output.objective = Work2/StepLength;
+    otherwise
+        error('Unsupported Cost Function');
 end
 
 end

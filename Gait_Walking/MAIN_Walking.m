@@ -16,6 +16,16 @@
 %
 
 %---------------------------------------------------%
+%                     NOTES                         %
+%---------------------------------------------------%
+
+% For doing CoT: make sure to use the Step_Length when computing the
+% distance for CoT. This should be far better than directly computing the
+% distance that the center of mass moved. It also corrects for ground slope
+% implicitly.
+
+
+%---------------------------------------------------%
 % Misc Setup                                        %
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
@@ -36,14 +46,16 @@ auxdata.dynamics.g = 9.81;   %(m/s^2) Gravitational acceleration
 auxdata.phase = {'D','S1'};
 
 %COST FUNCTION:
-auxdata.cost.method = 'Squared'; %{'CoT', 'Squared'}
+auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Cot2'}
 auxdata.cost.smoothing.power = 1;
-auxdata.cost.smoothing.distance = 1;
 auxdata.cost.negativeWorkCost = 0.5;
-auxdata.cost.pinionRadius = 0.05;  %(m)  %Convert force to a torque
 %  1 = pay full cost for negative work
 %  0 = negative work is free
 % -1 = full regeneration
+
+%(Weighting between force and torque actuators to make units work...)
+auxdata.cost.pinionRadius = 0.1;  %(m)  %Convert force to a torque
+
 
 %enforce friction cone at the contacts
 CoeffFriction = 0.8;  %Between the foot and the ground
@@ -251,13 +263,13 @@ setup.nlp.solver = 'ipopt';
 setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
-setup.mesh.tolerance = 1e-6;
-setup.mesh.maxiteration = 2;
+setup.mesh.tolerance = 1e-8;
+setup.mesh.maxiteration = 8;
 setup.mesh.colpointsmin = 4;
-setup.mesh.colpointsmax = 12;
+setup.mesh.colpointsmax = 15;
 setup.method = 'RPMintegration';
 setup.scales.method = 'none'; %{'automatic-bounds','none'};
-setup.nlp.options.tolerance = 1e-6;
+setup.nlp.options.tolerance = 1e-8;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 ---------------------%
