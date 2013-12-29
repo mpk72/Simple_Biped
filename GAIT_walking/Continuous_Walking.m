@@ -1,6 +1,5 @@
 function output = Continuous_Walking(input)
 
-
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %              PHASE 1  --  D  --  Double Stance                          %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -11,7 +10,7 @@ Actuators = input.phase(iphase).control;
 Parameters = input.auxdata.parameters;
 
 output(iphase).dynamics = dynamics(States, Actuators, Phase, Parameters);
-output(iphase).path =constraints(States, Actuators, Phase, Parameters);
+output(iphase).path = constraints(States, Actuators, Phase, Parameters);
 output(iphase).integrand = integralCost(States, Actuators, Phase, Parameters); 
 
 
@@ -25,7 +24,7 @@ Actuators = input.phase(iphase).control;
 Parameters = input.auxdata.parameters;
 
 output(iphase).dynamics = dynamics(States, Actuators, Phase, Parameters);
-output(iphase).path =constraints(States, Actuators, Phase, Parameters);
-output(iphase).integrand = integralCost(States, Actuators, Phase, Parameters); 
+output(iphase).path = constraints(States, Actuators, Phase, Parameters);
+output(iphase).integrand = integralCost(States, Actuators, Phase, Parameters);
 
 end

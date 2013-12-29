@@ -19,8 +19,8 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
+        H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
         
         M = Parameters.M;  %(kg) hip mass
         % m1 = Parameters.m1; %(kg) foot one mass
@@ -31,9 +31,10 @@ switch Phase
         
         ddx0 = (H1+H2)/M;
         ddy0 = (V1+V2)/M - g;
-        ddx2 = -(H1+H2)/m2;
-        ddy2 = -(V1+V2)/m2 - g;
         
+        ddx2 = -H2/m2;
+        ddy2 = -V2/m2 - g;
+
         dStates(:,1:4) = States(:,5:8);  %First-order form (dx=v)
         dStates(:,5) = ddx0;
         dStates(:,6) = ddy0;
@@ -49,9 +50,9 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
-        
+        H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
+                
         M = Parameters.M;  %(kg) hip mass
         g = Parameters.g;  %(m/s^2) gravity
         

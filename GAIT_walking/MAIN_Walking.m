@@ -22,7 +22,7 @@
 clc; clear; addpath ../shared;
 
 %Load solution from file?    ( '' for none )
-loadFileName = '';%oldSoln'; %  {'oldSoln.mat', ''}
+loadFileName = 'oldSoln'; %  {'oldSoln.mat', ''}
 
 %Used throughout
 LOW = 1; UPP = 2;
@@ -89,11 +89,11 @@ P.Bnd.State.dy2 = MAX_SPEED_Y*[-1;1];
 %                        Control Limits                                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-MAX_FORCE = 100; %(N)
-P.Bnd.Actuator.H1 = MAX_FORCE;
-P.Bnd.Actuator.V1 = MAX_FORCE;
-P.Bnd.Actuator.H2 = MAX_FORCE;
-P.Bnd.Actuator.V2 = MAX_FORCE;
+MAX_FORCE = 200; %(N)
+P.Bnd.Actuator.H1 = MAX_FORCE*[-1;1];
+P.Bnd.Actuator.V1 = MAX_FORCE*[-1;1];
+P.Bnd.Actuator.H2 = MAX_FORCE*[-1;1];
+P.Bnd.Actuator.V2 = MAX_FORCE*[-1;1];
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -130,8 +130,8 @@ bounds.phase(iphase).control.upper = tmpCtrlBnd(UPP,:);
 
 % Bounds for the path constraints:
 tmpCst = zeros(2,4);
-tmpCst(:,1) = LEG_LENGTH;
-tmpCst(:,2) = LEG_LENGTH;
+tmpCst(:,1) = LEG_LENGTH.^2;
+tmpCst(:,2) = LEG_LENGTH.^2;
 tmpCst(:,3) = BndContactAngle;
 tmpCst(:,4) = BndContactAngle;
 bounds.phase(iphase).path.lower = tmpCst(LOW,:);
@@ -180,8 +180,8 @@ bounds.phase(iphase).control.upper = tmpCtrlBnd(UPP,:);
 
 % Bounds for the path constraints:
 tmpCst = zeros(2,3);
-tmpCst(:,1) = LEG_LENGTH;
-tmpCst(:,2) = LEG_LENGTH;
+tmpCst(:,1) = LEG_LENGTH.^2;
+tmpCst(:,2) = LEG_LENGTH.^2;
 tmpCst(:,3) = BndContactAngle;
 bounds.phase(iphase).path.lower = tmpCst(LOW,:);
 bounds.phase(iphase).path.upper = tmpCst(UPP,:);
@@ -217,7 +217,6 @@ else  %Load guess from file
         guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
         guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
     end
-    guess.parameter = outputPrev.result.solution.parameter;
 end
 
 
@@ -225,13 +224,25 @@ end
 %                          Defect Constraints                             %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-bounds.eventgroup(1).lower = zeros(1,6);
-bounds.eventgroup(1).upper = zeros(1,6);
-bounds.eventgroup(2).lower = zeros(1,6);
-bounds.eventgroup(2).upper = zeros(1,6);
-bounds.eventgroup(3).lower = 0;
-bounds.eventgroup(3).lower = 0;
+% Time Defect 
+bounds.eventgroup(1).lower = 0;
+bounds.eventgroup(1).upper = 0;
 
+% Hip Defect
+bounds.eventgroup(2).lower = zeros(1,4);
+bounds.eventgroup(2).upper = zeros(1,4);
+
+% Swing foot defect
+bounds.eventgroup(3).lower = zeros(1,4);
+bounds.eventgroup(3).upper = zeros(1,4);
+
+% Step vector
+bounds.eventgroup(4).lower = zeros(1,2);
+bounds.eventgroup(4).upper = zeros(1,2);
+
+% Periodic 
+bounds.eventgroup(5).lower = zeros(1,4);
+bounds.eventgroup(5).upper = zeros(1,4);
 
 %-------------------------------------------------------------------------%
 %------------- Assemble Information into Problem Structure ---------------%
@@ -249,7 +260,7 @@ setup.mesh.method = 'hp1';
 setup.mesh.tolerance = 1e-2;
 setup.mesh.maxiteration = 3;
 setup.mesh.colpointsmin = 4;
-setup.mesh.colpointsmax = 10;
+setup.mesh.colpointsmax = 12;
 setup.method = 'RPMintegration';
 setup.scales.method = 'none'; %{'automatic-bounds','none'};
 setup.nlp.options.tolerance = 1e-2;
@@ -263,16 +274,16 @@ solution = output.result.solution;
 %--------------------------------------------------------------------------%
 %------------------------------- Plot Solution ----------------------------%
 %--------------------------------------------------------------------------%
-% %
-% % plotInfo = getPlotInfo(output);
-% % figNum = 1;
-% % animation(plotInfo,figNum);
-% %
-% % figNums = 2:8;
-% % plotSolution(plotInfo,figNums);
-% %
-% % if output.result.nlpinfo==0   %Then successful
-% %     %Save the solution if desired:
-% %     outputPrev = output;
-% %     save('oldSoln.mat','outputPrev');
-% % end
+
+plotInfo = getPlotInfo(output);
+figNum = 1;
+animation(plotInfo,figNum);
+
+figNums = 2:8;
+plotSolution(plotInfo,figNums);
+
+if output.result.nlpinfo==0   %Then successful
+    %Save the solution if desired:
+    outputPrev = output;
+    save('oldSoln.mat','outputPrev');
+end

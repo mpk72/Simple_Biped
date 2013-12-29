@@ -18,8 +18,8 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
+        H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
         
         % M = Parameters.M;  %(kg) hip mass
         % m1 = Parameters.m1; %(kg) foot one mass
@@ -30,8 +30,8 @@ switch Phase
             case 'CoT2' %Cost of transport, squared, constants removed
                 X2 = Parameters.StepVector(:,1);
                 Y2 = Parameters.StepVector(:,2);
-                power2 = (dx0*(H1+H2)).^2 + (dy0*(V1+V2)).^2 + ...
-                    (dx2*H2).^2 + (dy2*V2).^2;
+                power2 = (dx0.*(H1+H2)).^2 + (dy0.*(V1+V2)).^2 + ...
+                    (dx2.*H2).^2 + (dy2.*V2).^2;
                 dist2 = X2.^2 + Y2.^2;
                 C = power2/dist2;
             case 'Squared' %Sum force squared
@@ -49,8 +49,8 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
+        H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
         
         % M = Parameters.M;  %(kg) hip mass
         % g = Parameters.g;  %(m/s^2) gravity
@@ -59,7 +59,7 @@ switch Phase
             case 'CoT2' %Cost of transport, squared, constants removed
                 X2 = Parameters.StepVector(:,1);
                 Y2 = Parameters.StepVector(:,2);
-                power2 = (dx0*(H1+H2)).^2 + (dy0*(V1+V2)).^2;
+                power2 = (dx0.*(H1+H2)).^2 + (dy0.*(V1+V2)).^2;
                 dist2 = X2.^2 + Y2.^2;
                 C = power2/dist2;
             case 'Squared' %Sum force squared

@@ -15,8 +15,8 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        % H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        % V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
+        % H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        % V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
         
         % M = Parameters.M;  %(kg) hip mass
         m1 = Parameters.m1; %(kg) foot one mass
@@ -37,7 +37,7 @@ switch Phase
         %Leg Two Length Squared
         Dx2 = x0-x2;
         Dy2 = y0-y2;
-        Cst(:,1) = Dx2.^2 + Dy2.^2;
+        Cst(:,2) = Dx2.^2 + Dy2.^2;
         
         %Foot One, Contact force angle (Friction cone)
         Cst(:,3) = atan2(H1,V1-m1*g);
@@ -49,8 +49,8 @@ switch Phase
         
         H1 = Actuators(:,1); %(N) Horizontal force on hip from Leg One
         V1 = Actuators(:,2); %(N) Vertical force on hip from Leg One
-        H2 = Actuators(:,4); %(N) Horizontal force on hip from Leg Two
-        V2 = Actuators(:,3); %(N) Vertical force on hip from Leg Two
+        H2 = Actuators(:,3); %(N) Horizontal force on hip from Leg Two
+        V2 = Actuators(:,4); %(N) Vertical force on hip from Leg Two
         
         % M = Parameters.M;  %(kg) hip mass
         m1 = Parameters.m1; %(kg) foot one mass
@@ -74,7 +74,7 @@ switch Phase
         %Leg Two Length Squared
         Dx2 = x0-X2;
         Dy2 = y0-Y2;
-        Cst(:,1) = Dx2.^2 + Dy2.^2;
+        Cst(:,2) = Dx2.^2 + Dy2.^2;
         
         %Foot One, Contact force angle (Friction cone)
         Cst(:,3) = atan2(H1,V1-m1*g);
