@@ -34,14 +34,9 @@ auxdata.phase = {'S1'};
 %Goal information
 auxdata.goal.Step_Length = 0.4;
 
-% % % % %COST FUNCTION:
-% % % % auxdata.cost.method = 'Squared'; %{'CoT', 'Squared'}
-% % % % auxdata.cost.smoothing.power = 1;
-% % % % auxdata.cost.smoothing.distance = 1;
-% % % % auxdata.cost.negativeWorkCost = 0.5;
-% % % % %  1 = pay full cost for negative work
-% % % % %  0 = negative work is free
-% % % % % -1 = full regeneration
+%COST FUNCTION:
+auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work'}
+auxdata.cost.smoothing.power = 1;
 
 %enforce friction cone at the contacts
 CoeffFriction = 0.9;  %Between the foot and the ground
@@ -51,6 +46,14 @@ BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
 auxdata.animation.timeRate = 0.25;
 
+switch auxdata.cost.method 
+    case 'Work'
+        Max_Integral = 1e1;
+    case 'Squared'
+        Max_Integral = 1e2;
+    otherwise
+        error('Invalid Cost Function')
+end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                     Trajectory Limits                                   %
@@ -69,33 +72,15 @@ P.Bnd.States(:,6) = (pi/0.5)*[-1;1]; % (rad/s) Leg Two absolute angular rate
 P.Bnd.States(:,7) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg One extension rate
 P.Bnd.States(:,8) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg Two extensioin rate
 
-P.Bnd.InitialStates = zeros(2,8);
-P.Bnd.InitialStates(:,1) = (pi/4)*[1;1]; % (rad) Leg One absolute angle
-P.Bnd.InitialStates(:,2) = (pi/4)*[-1;-1]; % (rad) Leg Two absolute angle
-P.Bnd.InitialStates(:,3) = LEG_LENGTH; % (m) Leg One length
-P.Bnd.InitialStates(:,4) = LEG_LENGTH; % (m) Leg Two length
-P.Bnd.InitialStates(:,5) = (pi/0.5)*[-1;1]; % (rad/s) Leg One absolute angular rate
-P.Bnd.InitialStates(:,6) = (pi/0.5)*[-1;1]; % (rad/s) Leg Two absolute angular rate
-P.Bnd.InitialStates(:,7) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg One extension rate
-P.Bnd.InitialStates(:,8) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg Two extensioin rate
-
-
-P.Bnd.FinalStates = zeros(2,8);
-P.Bnd.FinalStates(:,1) = (pi/4)*[-1;-1]; % (rad) Leg One absolute angle
-P.Bnd.FinalStates(:,2) = (pi/4)*[1;1]; % (rad) Leg Two absolute angle
-P.Bnd.FinalStates(:,3) = LEG_LENGTH; % (m) Leg One length
-P.Bnd.FinalStates(:,4) = LEG_LENGTH; % (m) Leg Two length
-P.Bnd.FinalStates(:,5) = (pi/0.5)*[-1;1]; % (rad/s) Leg One absolute angular rate
-P.Bnd.FinalStates(:,6) = (pi/0.5)*[-1;1]; % (rad/s) Leg Two absolute angular rate
-P.Bnd.FinalStates(:,7) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg One extension rate
-P.Bnd.FinalStates(:,8) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg Two extensioin rate
-
-
 P.Bnd.Actuators = zeros(2,4);
 Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
 Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
-P.Bnd.Actuators(:,1) = 4*MASS*GRAVITY*[-1;1]; % (N) Compresive axial force in Leg One
-P.Bnd.Actuators(:,2) = 4*MASS*GRAVITY*[-1;1]; % (N) Compresive axial force in Leg Two
+Leg_Max = 4*MASS*GRAVITY;
+auxdata.cost.Scale.ankle = Ank_Max;
+auxdata.cost.Scale.hip = Hip_Max;
+auxdata.cost.Scale.leg = Leg_Max;
+P.Bnd.Actuators(:,1) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg One
+P.Bnd.Actuators(:,2) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
 P.Bnd.Actuators(:,3) = Ank_Max*[-1;1]; % (Nm) External torque applied to Leg One
 P.Bnd.Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg Two from Leg One
 
@@ -103,7 +88,7 @@ P.Bnd.Path = zeros(2,2);
 P.Bnd.Path(:,1) = BndContactAngle; % (rad) contact force angle on stance foot
 P.Bnd.Path(:,2) = [0;LEG_LENGTH(UPP)]; %(m) height of swing foot
 
-P.Bnd.Integral = [0; 1e5];
+P.Bnd.Integral = [0; Max_Integral];
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                Phase 1  --  S1  --  Single Stance                       %
@@ -122,10 +107,10 @@ bounds.phase(iphase).state.upper = P.Bnd.States(UPP,:);
 bounds.phase(iphase).control.lower = P.Bnd.Actuators(LOW,:);
 bounds.phase(iphase).control.upper = P.Bnd.Actuators(UPP,:);
 
-bounds.phase(iphase).initialstate.lower = P.Bnd.InitialStates(LOW,:);
-bounds.phase(iphase).initialstate.upper = P.Bnd.InitialStates(UPP,:);
-bounds.phase(iphase).finalstate.lower = P.Bnd.FinalStates(LOW,:);
-bounds.phase(iphase).finalstate.upper = P.Bnd.FinalStates(UPP,:);
+bounds.phase(iphase).initialstate.lower = P.Bnd.States(LOW,:);
+bounds.phase(iphase).initialstate.upper = P.Bnd.States(UPP,:);
+bounds.phase(iphase).finalstate.lower = P.Bnd.States(LOW,:);
+bounds.phase(iphase).finalstate.upper = P.Bnd.States(UPP,:);
 
 % Give the bounds for the integral (total actuator work) calculation:
 bounds.phase(iphase).integral.lower = P.Bnd.Integral(LOW);
@@ -136,8 +121,10 @@ bounds.phase(iphase).path.lower = P.Bnd.Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd.Path(UPP,:);
 
 % Eventgroup bounds
-bounds.eventgroup(1).lower = zeros(1,2);
-bounds.eventgroup(1).upper = zeros(1,2);
+bounds.eventgroup(1).lower = zeros(1,4); %Step Vector
+bounds.eventgroup(1).upper = zeros(1,4);
+bounds.eventgroup(2).lower = zeros(1,2); %Swing Foot initial speed
+bounds.eventgroup(2).upper = zeros(1,2);
 
 %-------------------------------------------------------------------------%
 %---------------------- Provide Guess of Solution ------------------------%
@@ -184,7 +171,7 @@ setup.derivatives.supplier = 'sparseCD';
 setup.derivatives.derivativelevel = 'second';
 setup.mesh.method = 'hp1';
 setup.mesh.tolerance = 1e-3;
-setup.mesh.maxiteration = 2;
+setup.mesh.maxiteration = 10;
 setup.mesh.colpointsmin = 4;
 setup.mesh.colpointsmax = 15;
 setup.method = 'RPMintegration';
