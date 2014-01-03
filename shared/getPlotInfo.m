@@ -98,7 +98,7 @@ for iphase = 1:length(P.phase)
             D(iphase).position.footOne.x = zeros(nTime,1); %(m) Foot One, horizontal position
             D(iphase).position.footOne.y = zeros(nTime,1); %(m) Foot One, vertical position
             D(iphase).position.footTwo.x = Parameters.x2*ones(nTime,1); %(m) Foot Two, horizontal position
-            D(iphase).position.footTwo.y = Parameters.y2*oness(nTime,1); %(m) Foot Two, vertical position
+            D(iphase).position.footTwo.y = Parameters.y2*ones(nTime,1); %(m) Foot Two, vertical position
             D(iphase).position.hip.x = States(:,1); %(m) Hip, horizontal position
             D(iphase).position.hip.y = States(:,2); %(m) Hip, vertical position
             

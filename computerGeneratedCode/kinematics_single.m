@@ -4,7 +4,7 @@ function [Position, Velocity, Power, Energy] = kinematics_single(States, Actuato
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_SingleStance()
-% 01-Jan-2014 10:31:37
+% 02-Jan-2014 23:31:28
 %
 %
 % Matthew Kelly 

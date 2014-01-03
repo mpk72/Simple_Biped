@@ -229,6 +229,21 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Foot One', 'Foot Two')
     
+    %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+    %                         System Energy                                   %
+    %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+    figH = figure(figNums(8));
+    set(figH,'Name','System Energy','NumberTitle','off')
+    hold on;
+    Datum = mean(D.energy.Potential);
+    plot(D.time,D.energy.Kinetic,'k:','LineWidth',LineWidth+1)
+    plot(D.time,D.energy.Potential - Datum,'k--','LineWidth',LineWidth+1)
+    plot(D.time,D.energy.Total - Datum,'k-','LineWidth',LineWidth+2)
+    title('System Energy','FontSize',FontSize.title)
+    ylabel('Energy (J)','FontSize',FontSize.ylabel)
+    xlabel('Time (s)','FontSize',FontSize.xlabel)
+    legend('Kinetic','Potential','Total')
+    
 end %iphase
 
 end

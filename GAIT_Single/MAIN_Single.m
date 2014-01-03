@@ -8,7 +8,7 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = 'oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
 
 LOW = 1; UPP = 2;
 
@@ -18,7 +18,7 @@ LOW = 1; UPP = 2;
 
 %Configuration parameters:
 LEG_LENGTH = [0.6; 1.0];
-DURATION = [0.8; 1.2];
+DURATION = [0.1; 1.0];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
 
@@ -35,9 +35,8 @@ auxdata.phase = {'S1'};
 auxdata.goal.Step_Length = 0.4;
 
 %COST FUNCTION:
-auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work','MOD'}
+auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work'}
 auxdata.cost.smoothing.power = 0.1;
-auxdata.cost.MOD.alpha = 0.1;   %Weighting on Work
 
 %enforce friction cone at the contacts
 CoeffFriction = 0.9;  %Between the foot and the ground
@@ -47,7 +46,7 @@ BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
 auxdata.animation.timeRate = 0.25;
 
-switch auxdata.cost.method 
+switch auxdata.cost.method
     case 'Work'
         Max_Integral = 1e1;
     case 'Squared'
@@ -63,7 +62,7 @@ end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 % SINGLE STANCE
 
-P.Bnd.Duration = [0.1; 1.0];
+P.Bnd.Duration = DURATION;
 
 P.Bnd.States = zeros(2,8);
 P.Bnd.States(:,1) = (pi/2)*[-1;1]; % (rad) Leg One absolute angle
@@ -141,12 +140,18 @@ bounds.eventgroup(4).upper = 0.8*ones(1,2)*LEG_LENGTH(UPP);
 if strcmp(loadFileName,'')   %Use default (bad) guess
     
     iphase=1;
+       
+    InitialStates = mean(P.Bnd.States,1);
+    InitialState(1) = pi/3;   %Stance leg angle
+    InitialState(2) = -pi/3;   %Swing leg angle
+    
+    FinalStates = mean(P.Bnd.States,1);
+    FinalState(1) = -pi/3;   %Stance leg angle
+    FinalState(2) = pi/3;   %Swing leg angle
     
     guess.phase(iphase).time = [0; mean(P.Bnd.Duration)];
     
-    meanInitialState = 0.5*(P.Bnd.InitialStates(LOW,:) + P.Bnd.InitialStates(UPP,:));
-    meanFinalState = 0.5*(P.Bnd.FinalStates(LOW,:) + P.Bnd.FinalStates(UPP,:));
-    guess.phase(iphase).state = [meanInitialState ; meanFinalState ];
+    guess.phase(iphase).state = [InitialStates ; FinalStates];
     
     meanControl = 0.5*(bounds.phase(iphase).control.lower + bounds.phase(iphase).control.upper);
     guess.phase(iphase).control = [meanControl; meanControl];
@@ -211,7 +216,7 @@ plotInfo = getPlotInfo(output);
 figNum = 1;
 animation(plotInfo,figNum);
 
-figNums = 2:8;
+figNums = 2:9;
 plotSolution(plotInfo,figNums);
 
 if output.result.nlpinfo==0   %Then successful
