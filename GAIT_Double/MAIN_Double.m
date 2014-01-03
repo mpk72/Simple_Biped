@@ -61,7 +61,7 @@ end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                     Trajectory Limits                                   %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-% SINGLE STANCE
+% DOUBLE STANCE
 
 P.Bnd.Duration = DURATION;
 
@@ -152,7 +152,7 @@ FinalStates(:,4) = 0; % (m) Hip vertical velocity
     
 else  %Load guess from file
     iphase=1;
-    load(loadFileName);
+    
     guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
     guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
     guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;

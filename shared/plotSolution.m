@@ -20,6 +20,7 @@ for i=1:length(figNums)
 end
 
 PHASE = plotInfo.parameters.phase;
+energyDatum = [];
 for iphase = 1:length(PHASE)
     
     D = plotInfo.data(iphase);
@@ -37,11 +38,13 @@ for iphase = 1:length(PHASE)
     title('Leg One Angle','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Angle (rad)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,2); hold on;
     plot(D.time, D.state.th2,Color_Two,'LineWidth',LineWidth);
     title('Leg Two Angle','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Angle (rad)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,3); hold on;
     plot(D.time, D.state.dth1,Color_One,'LineWidth',LineWidth);
     plot(D.time, D.state.dth2,Color_Two,'LineWidth',LineWidth);
@@ -49,6 +52,7 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Angular Rate (rad/s)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         Leg Lengths                                     %
@@ -61,11 +65,13 @@ for iphase = 1:length(PHASE)
     title('Leg One Length','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Length (m)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,2); hold on;
     plot(D.time, D.state.L2,Color_Two,'LineWidth',LineWidth);
     title('Leg Two Length','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Length (m)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,3); hold on;
     plot(D.time, D.state.dL1,Color_One,'LineWidth',LineWidth);
     plot(D.time, D.state.dL2,Color_Two,'LineWidth',LineWidth);
@@ -73,6 +79,7 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Length Rate of Change (m/s)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -130,6 +137,7 @@ for iphase = 1:length(PHASE)
     ylabel('Horizontal Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Horizontal Positions','FontSize',FontSize.title)
     legend('Hip','Foot One','Foot Two')
+    dottedLine(D.time(1),axis,iphase);
     
     subplot(3,1,2); hold on;
     plot(D.time,Kin.y0,Color_Hip,'LineWidth',LineWidth);
@@ -139,6 +147,7 @@ for iphase = 1:length(PHASE)
     ylabel('Vertical Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Vertical Positions','FontSize',FontSize.title)
     legend('Hip','Foot One','Foot Two')
+    dottedLine(D.time(1),axis,iphase);
     
     subplot(3,1,3); hold on;
     Speed.hip = sqrt(Kin.dx0.^2 + Kin.dy0.^2);
@@ -151,6 +160,7 @@ for iphase = 1:length(PHASE)
     ylabel('Speed (m/s)','FontSize',FontSize.ylabel)
     title('Point Mass Speed','FontSize',FontSize.title)
     legend('Hip','Foot One','Foot Two')
+    dottedLine(D.time(1),axis,iphase);
     
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -166,6 +176,7 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Force (N)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,2); hold on;
     plot(D.time, D.control.T1, Color_One,'LineWidth',LineWidth);
     plot(D.time, D.control.T2, Color_Two,'LineWidth',LineWidth);
@@ -173,11 +184,13 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Torque (Nm)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,3); hold on;
     plot(D.time, D.control.Thip,Color_Hip,'LineWidth',LineWidth);
     title('Hip Torque','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Torque (Nm)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                              Power                                      %
@@ -192,6 +205,7 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Power (W)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,2); hold on;
     plot(D.time, D.power.ankleOne, Color_One,'LineWidth',LineWidth);
     plot(D.time, D.power.ankleTwo, Color_Two,'LineWidth',LineWidth);
@@ -199,11 +213,13 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Power (W)','FontSize',FontSize.ylabel)
     legend('Leg One','Leg Two');
+    dottedLine(D.time(1),axis,iphase);
     subplot(3,1,3); hold on;
     plot(D.time, D.power.hip,Color_Hip,'LineWidth',LineWidth);
     title('Hip Power','FontSize',FontSize.title)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Power (W)','FontSize',FontSize.ylabel)
+    dottedLine(D.time(1),axis,iphase);
     
     
     
@@ -220,6 +236,7 @@ for iphase = 1:length(PHASE)
     ylabel('Angle from vertical (rad)','FontSize',FontSize.ylabel)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Foot One', 'Foot Two')
+    dottedLine(D.time(1),axis,iphase);
     
     subplot(2,1,2); hold on;
     plot(D.time,D.contact.Mag1,Color_One,'LineWidth',LineWidth);
@@ -228,6 +245,7 @@ for iphase = 1:length(PHASE)
     ylabel('Force (N)','FontSize',FontSize.ylabel)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Foot One', 'Foot Two')
+    dottedLine(D.time(1),axis,iphase);
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         System Energy                                   %
@@ -235,16 +253,30 @@ for iphase = 1:length(PHASE)
     figH = figure(figNums(8));
     set(figH,'Name','System Energy','NumberTitle','off')
     hold on;
-    Datum = mean(D.energy.Potential);
+    if isempty(energyDatum)
+        energyDatum = mean(D.energy.Potential);
+    end
     plot(D.time,D.energy.Kinetic,'k:','LineWidth',LineWidth+1)
-    plot(D.time,D.energy.Potential - Datum,'k--','LineWidth',LineWidth+1)
-    plot(D.time,D.energy.Total - Datum,'k-','LineWidth',LineWidth+2)
+    plot(D.time,D.energy.Potential - energyDatum,'k--','LineWidth',LineWidth+1)
+    plot(D.time,D.energy.Total - energyDatum,'k-','LineWidth',LineWidth+2)
     title('System Energy','FontSize',FontSize.title)
     ylabel('Energy (J)','FontSize',FontSize.ylabel)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Kinetic','Potential','Total')
+    dottedLine(D.time(1),axis,iphase);
     
 end %iphase
+
+end
+
+%%%% SUB FUNCTIONS %%%%
+
+function dottedLine(time,AXIS,iphase)
+
+if iphase>1
+    %Plots a dotted line between phases
+    plot(time*[1;1],[AXIS(3);AXIS(4)],'k:','LineWidth',1);
+end
 
 end
 

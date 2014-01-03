@@ -51,8 +51,6 @@ switch auxdata.cost.method
         Max_Integral = 1e1;
     case 'Squared'
         Max_Integral = 1e-1;
-    case 'MOD'
-        Max_Integral = 1e2;
     otherwise
         error('Invalid Cost Function')
 end
@@ -175,7 +173,7 @@ end
 nSections = 5;  %Number of sections
 nColPts = 8;  %Collocation points per phase
 
-mesh.method = 'hp1';
+mesh.method = 'hp1'; % {'hp','hp1'};
 mesh.tolerance = 1e-8;
 mesh.maxiteration = 5;
 mesh.phase.colpoints = nColPts*ones(1,nSections);

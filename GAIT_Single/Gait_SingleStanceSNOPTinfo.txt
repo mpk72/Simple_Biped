@@ -54,7 +54,7 @@
 
  Miscellaneous
  -------------
- LU factor tolerance....      3.99       LU singularity tol.....  3.25E-11       Timing level...........         3
+ LU factor tolerance....      3.99       LU singularity tol.....  3.25E-11       Timing level...........         0
  LU update tolerance....      3.99       LU swap tolerance......  1.22E-04       Debug level............         0
  LU partial  pivoting...                 eps (machine precision)  2.22E-16       System information.....        No
                                                                                  Sticky parameters......       Yes
@@ -1198,9 +1198,3 @@
      573  x    573 A  EQ          .               .               .               .               .00000   1056
      574  x    574    BS         -.23725          .              -.50000          .50000          .00000   1057
      575  x    575    BS         -.45547          .10000         -.50000          .50000          .00000   1058
- 
- Time for MPS input                              .00 seconds
- Time for solving problem                      -2.00 seconds
- Time for solution output              ************* seconds
- Time for constraint functions         ************* seconds
- Time for objective function                     .00 seconds

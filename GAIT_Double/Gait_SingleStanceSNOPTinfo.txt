@@ -968,4 +968,8 @@
      246  x    246   SBS         -.41004          .              -.50000          .50000          .00000    493
      247  x    247    LL         -.50000          .10000         -.50000          .50000          .10000    494
  
- Time for MPS input                            
+ Time for MPS input                              .00 seconds
+ Time for solving problem                       2.00 seconds
+ Time for solution output                      -2.00 seconds
+ Time for constraint functions         ************* seconds
+ Time for objective function                     .00 seconds

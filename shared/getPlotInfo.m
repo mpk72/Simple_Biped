@@ -121,6 +121,11 @@ for iphase = 1:length(P.phase)
     end
 end
 
+%Go through and apply shifts necessary to line things up
+for iphase=2:length(P.phase)
+    D(iphase).time = D(iphase).time + D(iphase-1).time(end);
+end
+
 plotInfo.data = D;
 plotInfo.parameters = P;
 
