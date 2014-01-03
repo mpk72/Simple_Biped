@@ -1,4 +1,4 @@
-function output = Continuous_Single(input)
+function output = Continuous_Double(input)
 
 States = input.phase(1).state;
 Actuators = input.phase(1).control;

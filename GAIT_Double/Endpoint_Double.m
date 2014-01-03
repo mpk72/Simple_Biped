@@ -1,4 +1,4 @@
-function output = Endpoint_Single(input)
+function output = Endpoint_Double(input)
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                          Objective Function                             %
