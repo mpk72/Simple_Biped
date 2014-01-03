@@ -6,14 +6,14 @@ D = zeros(nPhase,0);
 
 for iphase = 1:length(P.phase)
     
-    D(iphase).time = output.result.solution.phase(iphase).time;
+    D(iphase).time = output.result.interpsolution.phase(iphase).time;
     D(iphase).phase = P.phase{iphase};
     nTime = length(D(iphase).time);
     
     switch D(iphase).phase
         case 'S1' %Single stance, with Stance_Foot == Foot_One
             
-            States = output.result.solution.phase(iphase).state;
+            States = output.result.interpsolution.phase(iphase).state;
             D(iphase).state.th1 = States(:,1); % (rad) Leg One absolute angle
             D(iphase).state.th2 = States(:,2); % (rad) Leg Two absolute angle
             D(iphase).state.L1 = States(:,3); % (m) Leg One length
@@ -27,7 +27,7 @@ for iphase = 1:length(P.phase)
             D(iphase).state.dx = zeros(nTime,1); % (m) Foot One Horizontal Velocity
             D(iphase).state.dy = zeros(nTime,1); % (m) Foot One Vertical Velocity
             
-            Actuators = output.result.solution.phase(iphase).control;
+            Actuators = output.result.interpsolution.phase(iphase).control;
             D(iphase).control.F1 = Actuators(:,1); % (N) Compresive axial force in Leg One
             D(iphase).control.F2 = Actuators(:,2); % (N) Compresive axial force in Leg Two
             D(iphase).control.T1 = Actuators(:,3); % (Nm) External torque applied to Leg One
@@ -65,8 +65,8 @@ for iphase = 1:length(P.phase)
             
         case 'D' %Double stance, with Stance_Foot at origin
             
-            States = output.result.solution.phase(iphase).state;
-            Actuators = output.result.solution.phase(iphase).control;
+            States = output.result.interpsolution.phase(iphase).state;
+            Actuators = output.result.interpsolution.phase(iphase).control;
             Parameters = P.dynamics;
             [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Parameters);
             [~, contactForces] = dynamics_double(States, Actuators, Parameters);

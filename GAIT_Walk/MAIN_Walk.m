@@ -8,7 +8,7 @@
 %---------------------------------------------------%
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
-loadFileName = '';%oldSoln.mat';  %'' = use default;   'oldSoln.mat'
+loadPrevSoln = true;
 
 LOW = 1; UPP = 2;
 
@@ -22,7 +22,11 @@ DURATION_SINGLE = [0.25; 1.2];
 DURATION_DOUBLE = [0.1; 0.8];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
-STEP_VECTOR = [0.4;0];  %[horizontal; vertical]
+STEP_VECTOR = [0.4;0.1];  %[horizontal; vertical]
+
+%Common optimization parameters:
+TOLERANCE = 1e-3;
+MAX_BIG_ITER = 5;
 
 %Actuator Limits
 Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
@@ -65,8 +69,8 @@ switch auxdata.cost.method
 end
 
 %Load the previous solution, if available
-if ~strcmp(loadFileName,'')
-    load(loadFileName);
+if loadPrevSoln
+    load(['oldSoln_' auxdata.cost.method '.mat']);
 end
 
 %%%%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%%%%
@@ -121,14 +125,8 @@ bounds.phase(iphase).integral.upper = P.Bnd(iphase).Integral(UPP);
 bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
-% Eventgroup bounds
-bounds.eventgroup(1).lower = zeros(1,2); % Hip x Pos
-bounds.eventgroup(1).upper = zeros(1,2);
-bounds.eventgroup(2).lower = 0.8*ones(1,2)*LEG_LENGTH(UPP); % Hip y Pos
-bounds.eventgroup(2).upper = 0.8*ones(1,2)*LEG_LENGTH(UPP);
-
 %GUESS
-if strcmp(loadFileName,'')   %Use default (bad) guess
+if ~loadPrevSoln  %Use default (bad) guess
     
     InitialStates = zeros(1,4);
     InitialStates(:,1) = -0.6*STEP_VECTOR(1); % (m) Hip horizontal position wrt Foot One
@@ -222,19 +220,9 @@ bounds.phase(iphase).integral.upper = P.Bnd(iphase).Integral(UPP);
 bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
-% Eventgroup bounds
-bounds.eventgroup(3).lower = zeros(1,4); % Step Vector
-bounds.eventgroup(3).upper = zeros(1,4);
-bounds.eventgroup(4).lower = zeros(1,2); % Swing Foot initial speed
-bounds.eventgroup(4).upper = zeros(1,2);
-bounds.eventgroup(5).lower = zeros(1,2); % Hip x Pos
-bounds.eventgroup(5).upper = zeros(1,2);
-bounds.eventgroup(6).lower = 0.8*ones(1,2)*LEG_LENGTH(UPP); % Hip y Pos
-bounds.eventgroup(6).upper = 0.8*ones(1,2)*LEG_LENGTH(UPP);
-
 %GUESS
-if strcmp(loadFileName,'')   %Use default (bad) guess
-       
+if ~loadPrevSoln   %Use default (bad) guess
+    
     InitialStates = mean(P.Bnd(iphase).States,1);
     InitialStates(1) = pi/3;   %Stance leg angle
     InitialStates(2) = -pi/3;   %Swing leg angle
@@ -260,22 +248,38 @@ else  %Load guess from file
     guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
 end
 
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                             Event Group                                 %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+bounds.eventgroup(1).lower = zeros(1,4); % Hip states @ toe off
+bounds.eventgroup(1).upper = zeros(1,4);
+bounds.eventgroup(2).lower = zeros(1,4); % Periodic hip
+bounds.eventgroup(2).upper = zeros(1,4);
+bounds.eventgroup(3).lower = zeros(1,4); % Periodic foot
+bounds.eventgroup(3).upper = zeros(1,4);
+bounds.eventgroup(4).lower = zeros(1,2); % initial swing foot speed
+bounds.eventgroup(4).upper = zeros(1,2);
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-nSections = 5;  %Number of sections
-nColPts = 8;  %Collocation points per phase
-
+if loadPrevSoln
+    mesh = outputPrev.result.setup.mesh;
+else
+    nSections = 5;  %Number of sections
+    nColPts = 8;  %Collocation points per phase
+    mesh.phase(1).colpoints = nColPts*ones(1,nSections);
+    mesh.phase(1).fraction  = ones(1,nSections)/nSections;
+    mesh.phase(2).colpoints = nColPts*ones(1,nSections);
+    mesh.phase(2).fraction  = ones(1,nSections)/nSections;
+    mesh.colpointsmin = 5;
+    mesh.colpointsmax = 20;
+end
 mesh.method = 'hp1'; % {'hp','hp1'};
-mesh.tolerance = 1e-2;
-mesh.maxiteration = 2;
-mesh.phase(1).colpoints = nColPts*ones(1,nSections);
-mesh.phase(1).fraction  = ones(1,nSections)/nSections;
-mesh.phase(2).colpoints = nColPts*ones(1,nSections);
-mesh.phase(2).fraction  = ones(1,nSections)/nSections;
-mesh.colpointsmin = 5;
-mesh.colpointsmax = 20;
+mesh.tolerance = TOLERANCE;
+mesh.maxiteration = MAX_BIG_ITER;
 
 
 %-------------------------------------------------------------------------%
@@ -293,7 +297,7 @@ setup.derivatives.supplier = 'sparseCD'; %{'sparseBD', 'sparseFD', 'sparseCD'}
 setup.derivatives.derivativelevel = 'second'; %{'first','second'};
 setup.method = 'RPMintegration';
 setup.scales.method = 'automatic-bounds';
-setup.nlp.options.tolerance = 1e-2;
+setup.nlp.options.tolerance = TOLERANCE;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 --------------------%
@@ -313,10 +317,11 @@ animation(plotInfo,figNum);
 figNums = 2:9;
 plotSolution(plotInfo,figNums);
 
-if output.result.nlpinfo==0   %Then successful
-    %Save the solution if desired:
+if (strcmp(setup.nlp.solver,'ipopt') && output.result.nlpinfo==0) ||...
+        (strcmp(setup.nlp.solver,'snopt') && output.result.nlpinfo==1)
+    %Then successful  --  Save the solution:
     outputPrev = output;
-    save('oldSoln.mat','outputPrev');
+    save(['oldSoln_' auxdata.cost.method '.mat'],'outputPrev');
 end
 
 
