@@ -23,11 +23,43 @@ DURATION_SINGLE = [0.25; 1.2];
 DURATION_DOUBLE = [0.1; 0.8];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
-STEP_VECTOR = [0.4;-0.1];  %[horizontal; vertical]
 
 %Common optimization parameters:
-TOLERANCE = 1e-8;
-MAX_MESH_ITER = 5;
+TOLERANCE = 1e-2;
+MAX_MESH_ITER = 2;
+
+%Ground and step calculations
+SLOPE = -0.4;
+STEP_DIST = 0.4;   %Horizontal component of the step vector
+groundFunc = @(x)ground(x,SLOPE);
+auxdata.ground.func = groundFunc;
+
+%Get the swing foot boundary constraints
+auxdata.ground.swing.start.x = -STEP_DIST;
+auxdata.ground.swing.end.x = STEP_DIST;
+auxdata.ground.swing.start.y = groundFunc(-STEP_DIST);
+auxdata.ground.swing.end.y = groundFunc(STEP_DIST);
+
+%Get the double stance configuration right
+auxdata.dynamics.x2 = auxdata.ground.swing.start.x;    % Horizontal Position, Foot Two, Double Stance
+auxdata.dynamics.y2 = auxdata.ground.swing.start.y;  % Vertical Position, Foot Two, Double Stance
+
+%Get the slopes for the stance feet:
+[~, n] = groundFunc(0);
+auxdata.ground.normal.double.one = n;
+auxdata.ground.normal.single.one = n;
+[~, n] = groundFunc(-STEP_DIST);
+auxdata.ground.normal.double.two = n;
+
+%Hip translation
+HIP_VECTOR = 0.5*[...
+    auxdata.ground.swing.end.x - auxdata.ground.swing.start.x,...
+    auxdata.ground.swing.end.y - auxdata.ground.swing.start.y];
+
+%Cartesian problem bounds:
+DOMAIN = 1.25*STEP_DIST*[-1;1];
+gnd = groundFunc(linspace(DOMAIN(1),DOMAIN(2),1000));
+RANGE = [min(gnd); max(gnd)+2*LEG_LENGTH(UPP)];
 
 %Store phase information
 auxdata.phase = {'D','S1'};
@@ -42,11 +74,6 @@ auxdata.dynamics.m = 0.5*(1-hip_mass_fraction)*MASS;   %(kg) foot mass
 auxdata.dynamics.M = hip_mass_fraction*MASS;    %(kg) hip Mass
 auxdata.dynamics.g = GRAVITY;   %(m/s^2) Gravitational acceleration
 
-%Step information
-auxdata.goal.Step_Vector = STEP_VECTOR;
-auxdata.dynamics.x2 = -STEP_VECTOR(1);
-auxdata.dynamics.y2 = -STEP_VECTOR(2);
-
 %Actuator Limits
 Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
 Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
@@ -58,7 +85,7 @@ BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 
 %For animation only:
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
-auxdata.animation.timeRate = 0.25;
+auxdata.animation.timeRate = 0.2;
 
 switch auxdata.cost.method
     case 'Work'
@@ -87,8 +114,8 @@ iphase = 1;
 P.Bnd(iphase).Duration = DURATION_DOUBLE;
 
 P.Bnd(iphase).States = zeros(2,4);
-P.Bnd(iphase).States(:,1) = STEP_VECTOR(1)*[-1;1]; % (m) Hip horizontal position wrt Foot One
-P.Bnd(iphase).States(:,2) = STEP_VECTOR(2)*[-1;1] + [0;LEG_LENGTH(2)]; % (m) Hip vertical position wrt Foot One
+P.Bnd(iphase).States(:,1) = DOMAIN; % (m) Hip horizontal position
+P.Bnd(iphase).States(:,2) = RANGE; % (m) Hip vertical position One
 P.Bnd(iphase).States(:,3) = 5*[-1;1]; % (m) Hip horizontal velocity
 P.Bnd(iphase).States(:,4) = 2*[-1;1]; % (m) Hip vertical velocity
 
@@ -97,8 +124,10 @@ P.Bnd(iphase).Actuators(:,1) = Leg_Max*[-1;1]; % (N) Compresive axial force in L
 P.Bnd(iphase).Actuators(:,2) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
 
 P.Bnd(iphase).Path = zeros(2,2);
-P.Bnd(iphase).Path(:,1) = BndContactAngle; % (rad) contact force angle on foot one
-P.Bnd(iphase).Path(:,2) = BndContactAngle; % (rad) contact force angle on foot two
+P.Bnd(iphase).Path(:,1) = ...% (rad) contact force angle on foot one
+    BndContactAngle + auxdata.ground.normal.double.one; 
+P.Bnd(iphase).Path(:,2) = ... % (rad) contact force angle on foot two
+    BndContactAngle + auxdata.ground.normal.double.two;
 
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_DOUBLE(UPP)];
 
@@ -130,13 +159,13 @@ bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 if ~loadPrevSoln  %Use default (bad) guess
     
     InitialStates = zeros(1,4);
-    InitialStates(:,1) = -0.6*STEP_VECTOR(1); % (m) Hip horizontal position wrt Foot One
+    InitialStates(:,1) = -0.6*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
     InitialStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
     InitialStates(:,3) = 0; % (m) Hip horizontal velocity
     InitialStates(:,4) = 0; % (m) Hip vertical velocity
     
     FinalStates = zeros(1,4);
-    FinalStates(:,1) = -0.1*STEP_VECTOR(1); % (m) Hip horizontal position wrt Foot One
+    FinalStates(:,1) = -0.3*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
     FinalStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
     FinalStates(:,3) = 0; % (m) Hip horizontal velocity
     FinalStates(:,4) = 0; % (m) Hip vertical velocity
@@ -192,10 +221,12 @@ P.Bnd(iphase).Actuators(:,3) = Ank_Max*[-1;1]; % (Nm) External torque applied to
 P.Bnd(iphase).Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg Two from Leg One
 
 P.Bnd(iphase).Path = zeros(2,2);
-P.Bnd(iphase).Path(:,1) = BndContactAngle; % (rad) contact force angle on stance foot
-%%%% HACK %%%%    %These bounds are pretend - should be f(ground)
-P.Bnd(iphase).Path(:,2) = [-abs(STEP_VECTOR(2)); 2*LEG_LENGTH(UPP)]; %(m) height of swing foot
-%%%% DONE %%%%
+P.Bnd(iphase).Path(:,1) = ...; % (rad) contact force angle on stance foot
+    BndContactAngle + auxdata.ground.normal.single.one;
+
+P.Bnd(iphase).Path(:,2) = [0; LEG_LENGTH(UPP)]; %Swing foot clears ground
+
+
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_SINGLE(UPP)];
 
 %Start at time = 0
@@ -259,9 +290,10 @@ end
 bounds.eventgroup(1).lower = zeros(1,4);
 bounds.eventgroup(1).upper = zeros(1,4);
 
-%Hip Translation:
-tmp = [STEP_VECTOR(1), STEP_VECTOR(2), 0, 0];
-bounds.eventgroup(2).lower = tmp; % Hip states @ toe off
+%Hip state change across entire step. Translates by HIP_VECTOR, but the
+%velocity must be the same at the start and end of the step
+tmp = [HIP_VECTOR(1), HIP_VECTOR(2), 0, 0];
+bounds.eventgroup(2).lower = tmp; 
 bounds.eventgroup(2).upper = tmp;
 
 % initial swing foot speed
@@ -270,10 +302,10 @@ bounds.eventgroup(3).upper = zeros(1,2);
 
 %Swing foot targets:
 tmp = [...
-    -STEP_VECTOR(1),...     %Foot Two, S, initial, horizontal
-    STEP_VECTOR(1),...      %Foot Two, S, final, horizontal
-    -STEP_VECTOR(2),...     %Foot Two, S, initial, vertical
-    STEP_VECTOR(2)];        %Foot Two, S, final, vertical
+    auxdata.ground.swing.start.x,...     %Foot Two, S, initial, horizontal
+    auxdata.ground.swing.end.x,...      %Foot Two, S, final, horizontal
+    auxdata.ground.swing.start.y,...     %Foot Two, S, initial, vertical
+    auxdata.ground.swing.end.y];        %Foot Two, S, final, vertical
 bounds.eventgroup(4).lower = tmp;
 bounds.eventgroup(4).upper = tmp;
 

@@ -56,7 +56,8 @@ output(iphase).path = zeros(size(dStates,1),2);
 H1 = contactForces(:,1);
 V1 = contactForces(:,2);
 output(iphase).path(:,1) = atan2(H1,V1);
-output(iphase).path(:,2) = Position.footTwo.y;
+output(iphase).path(:,2) = ... %Foot height above ground
+    Position.footTwo.y - feval(input.auxdata.ground.func,Position.footTwo.x);
 
 switch input.auxdata.cost.method
     case 'Work'

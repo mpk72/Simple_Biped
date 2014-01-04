@@ -20,6 +20,7 @@ for i=1:length(figNums)
 end
 
 PHASE = plotInfo.parameters.phase;
+
 energyDatum = [];
 for iphase = 1:length(PHASE)
     
@@ -112,6 +113,16 @@ for iphase = 1:length(PHASE)
     ylabel('Vertical Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Traces','FontSize',FontSize.title)
     
+    %Plot the ground if possible:
+    if isfield(plotInfo.parameters,'ground')
+        GROUND = plotInfo.parameters.ground;
+        extents = axis;
+        plotGround(GROUND,extents(1:2));
+        legend('Hip','Foot One','Foot Two','Ground')
+    else
+        legend('Hip','Foot One','Foot Two')
+    end
+    
     %Plot the start and end of each trace.
     plot(Kin.x0(1),Kin.y0(1),[Color_Hip 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
     plot(Kin.x1(1),Kin.y1(1),[Color_One 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
@@ -120,7 +131,6 @@ for iphase = 1:length(PHASE)
     plot(Kin.x1(end),Kin.y1(end),[Color_One 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
     plot(Kin.x2(end),Kin.y2(end),[Color_Two 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
     
-    legend('Hip','Foot One','Foot Two')
     axis equal
     
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -277,6 +287,15 @@ if iphase>1
     %Plots a dotted line between phases
     plot(time*[1;1],[AXIS(3);AXIS(4)],'k:','LineWidth',1);
 end
+
+end
+
+function plotGround(ground,xBnd)
+
+x = linspace(xBnd(1),xBnd(2),100);
+y = feval(ground.func,x);
+
+plot(x,y,'k-','LineWidth',2);
 
 end
 
