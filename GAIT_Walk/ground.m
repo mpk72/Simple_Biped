@@ -1,4 +1,4 @@
-function [y, n] = ground(x,slope)
+function [y, n] = ground(x,slope,curvature)
 
 %This function stores the ground profile for computing step vectors and
 %swing foot clearance. 
@@ -10,7 +10,8 @@ function [y, n] = ground(x,slope)
 %
 
 %%%% very simple for now
-y = slope*x;
-n = atan2(slope,1);
+y = slope*x + curvature*x.^2;
+dy = slope + 2*curvature*x;
+n = atan2(dy,1);
 
 end

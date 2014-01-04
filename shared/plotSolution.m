@@ -116,8 +116,11 @@ for iphase = 1:length(PHASE)
     %Plot the ground if possible:
     if isfield(plotInfo.parameters,'ground')
         GROUND = plotInfo.parameters.ground;
-        extents = axis;
-        plotGround(GROUND,extents(1:2));
+        xBnd = [min([min(Kin.x0),min(Kin.x1),min(Kin.x2)]),...
+            max([max(Kin.x0),max(Kin.x1),max(Kin.x2)])];
+        xBnd(1) = xBnd(1) - 0.1*diff(xBnd);
+        xBnd(2) = xBnd(2) + 0.1*diff(xBnd);
+        plotGround(GROUND,xBnd);
         legend('Hip','Foot One','Foot Two','Ground')
     else
         legend('Hip','Foot One','Foot Two')
@@ -240,17 +243,21 @@ for iphase = 1:length(PHASE)
     set(figH,'Name','Contact Forces','NumberTitle','off')
     
     subplot(2,1,1); hold on;
-    plot(D.time,D.contact.Ang1,Color_One,'LineWidth',LineWidth);
-    plot(D.time,D.contact.Ang2,Color_Two,'LineWidth',LineWidth);
+    plot(D.time,D.contact.Ang1,Color_One,'LineWidth',LineWidth+1);
+    plot(D.time,D.contact.Ang2,Color_Two,'LineWidth',LineWidth+1);
     title('Contact Force Angle','FontSize',FontSize.title)
     ylabel('Angle from vertical (rad)','FontSize',FontSize.ylabel)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Foot One', 'Foot Two')
     dottedLine(D.time(1),axis,iphase);
+    plot(D.time([1,end]),D.contact.Bnd1(1)*[1,1],[Color_One '--'],'LineWidth',LineWidth)
+    plot(D.time([1,end]),D.contact.Bnd1(2)*[1,1],[Color_One '--'],'LineWidth',LineWidth)
+    plot(D.time([1,end]),D.contact.Bnd2(1)*[1,1],[Color_Two '--'],'LineWidth',LineWidth)
+    plot(D.time([1,end]),D.contact.Bnd2(2)*[1,1],[Color_Two '--'],'LineWidth',LineWidth)
     
     subplot(2,1,2); hold on;
-    plot(D.time,D.contact.Mag1,Color_One,'LineWidth',LineWidth);
-    plot(D.time,D.contact.Mag2,Color_Two,'LineWidth',LineWidth);
+    plot(D.time,D.contact.Mag1,Color_One,'LineWidth',LineWidth+1);
+    plot(D.time,D.contact.Mag2,Color_Two,'LineWidth',LineWidth+1);
     title('Contact Force Magnitude','FontSize',FontSize.title)
     ylabel('Force (N)','FontSize',FontSize.ylabel)
     xlabel('Time (s)','FontSize',FontSize.xlabel)

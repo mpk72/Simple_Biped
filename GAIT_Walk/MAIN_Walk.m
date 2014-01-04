@@ -25,14 +25,20 @@ MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
 
 %Common optimization parameters:
-TOLERANCE = 1e-2;
-MAX_MESH_ITER = 2;
+TOLERANCE = 1e-6;
+MAX_MESH_ITER = 5;
 
 %Ground and step calculations
-SLOPE = -0.4;
+SLOPE = 0;    %Ground slope
+CURVATURE = -0.15;   %Ground curvature 
 STEP_DIST = 0.4;   %Horizontal component of the step vector
-groundFunc = @(x)ground(x,SLOPE);
+groundFunc = @(x)ground(x,SLOPE,CURVATURE);
 auxdata.ground.func = groundFunc;
+
+%enforce friction cone at the contacts
+CoeffFriction = 0.5;  %Between the foot and the ground
+BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
+auxdata.ground.normal.bounds = BndContactAngle;
 
 %Get the swing foot boundary constraints
 auxdata.ground.swing.start.x = -STEP_DIST;
@@ -79,10 +85,6 @@ Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
 Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
 Leg_Max = 2*MASS*GRAVITY;
 
-%enforce friction cone at the contacts
-CoeffFriction = 0.9;  %Between the foot and the ground
-BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
-
 %For animation only:
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
 auxdata.animation.timeRate = 0.2;
@@ -125,9 +127,9 @@ P.Bnd(iphase).Actuators(:,2) = Leg_Max*[-1;1]; % (N) Compresive axial force in L
 
 P.Bnd(iphase).Path = zeros(2,2);
 P.Bnd(iphase).Path(:,1) = ...% (rad) contact force angle on foot one
-    BndContactAngle + auxdata.ground.normal.double.one; 
+    BndContactAngle - auxdata.ground.normal.double.one; 
 P.Bnd(iphase).Path(:,2) = ... % (rad) contact force angle on foot two
-    BndContactAngle + auxdata.ground.normal.double.two;
+    BndContactAngle - auxdata.ground.normal.double.two;
 
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_DOUBLE(UPP)];
 
@@ -222,7 +224,7 @@ P.Bnd(iphase).Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg 
 
 P.Bnd(iphase).Path = zeros(2,2);
 P.Bnd(iphase).Path(:,1) = ...; % (rad) contact force angle on stance foot
-    BndContactAngle + auxdata.ground.normal.single.one;
+    BndContactAngle - auxdata.ground.normal.single.one;
 
 P.Bnd(iphase).Path(:,2) = [0; LEG_LENGTH(UPP)]; %Swing foot clears ground
 

@@ -47,6 +47,8 @@ for iphase = 1:length(P.phase)
             D(iphase).contact.Ang1 = th - pi/2;      %(rad) Foot One, contact force angle from vertical
             D(iphase).contact.Mag2 = zeros(nTime,1); %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = zeros(nTime,1); %(rad) Foot Two, contact force angle from vertical
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.single.one; %Bounds on the contact angle
+            D(iphase).contact.Bnd2 = zeros(2,1);
             
             [Position, Velocity, Power, Energy] = kinematics_single(States, Actuators, Parameters);
             
@@ -94,7 +96,9 @@ for iphase = 1:length(P.phase)
             [th, r] = cart2pol(D(iphase).contact.H2, D(iphase).contact.V2);
             D(iphase).contact.Mag2 = r;             %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = th - pi/2;     %(rad) Foot Two, contact force angle from vertical
-            
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.double.one; %Bounds on the contact angle
+            D(iphase).contact.Bnd2 = P.ground.normal.bounds + P.ground.normal.double.two; %Bounds on the contact angle
+           
             D(iphase).position.footOne.x = zeros(nTime,1); %(m) Foot One, horizontal position
             D(iphase).position.footOne.y = zeros(nTime,1); %(m) Foot One, vertical position
             D(iphase).position.footTwo.x = Parameters.x2*ones(nTime,1); %(m) Foot Two, horizontal position
