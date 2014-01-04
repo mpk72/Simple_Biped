@@ -9,6 +9,7 @@
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
 loadPrevSoln = true;
+saveSolution = false;
 
 LOW = 1; UPP = 2;
 
@@ -22,16 +23,16 @@ DURATION_SINGLE = [0.25; 1.2];
 DURATION_DOUBLE = [0.1; 0.8];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
-STEP_VECTOR = [0.4;0.1];  %[horizontal; vertical]
+STEP_VECTOR = [0.4;-0.15];  %[horizontal; vertical]
 
 %Common optimization parameters:
-TOLERANCE = 1e-3;
-MAX_BIG_ITER = 5;
+TOLERANCE = 1e-5;
+MAX_MESH_ITER = 5;
 
 %Actuator Limits
 Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
 Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
-Leg_Max = 4*MASS*GRAVITY;
+Leg_Max = 2*MASS*GRAVITY;
 
 %Store phase information
 auxdata.phase = {'D','S1'};
@@ -192,8 +193,9 @@ P.Bnd(iphase).Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg 
 
 P.Bnd(iphase).Path = zeros(2,2);
 P.Bnd(iphase).Path(:,1) = BndContactAngle; % (rad) contact force angle on stance foot
-P.Bnd(iphase).Path(:,2) = [0;LEG_LENGTH(UPP)]; %(m) height of swing foot
-
+%%%% HACK %%%%    %These bounds are pretend
+P.Bnd(iphase).Path(:,2) = [-abs(STEP_VECTOR(2)); 2*LEG_LENGTH(UPP)]; %(m) height of swing foot
+%%%% DONE %%%%
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_SINGLE(UPP)];
 
 %Start at time = 0
@@ -252,14 +254,28 @@ end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                             Event Group                                 %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-bounds.eventgroup(1).lower = zeros(1,4); % Hip states @ toe off
+
+% Continuous hip motion
+bounds.eventgroup(1).lower = zeros(1,4);
 bounds.eventgroup(1).upper = zeros(1,4);
-bounds.eventgroup(2).lower = zeros(1,4); % Periodic hip
-bounds.eventgroup(2).upper = zeros(1,4);
-bounds.eventgroup(3).lower = zeros(1,4); % Periodic foot
-bounds.eventgroup(3).upper = zeros(1,4);
-bounds.eventgroup(4).lower = zeros(1,2); % initial swing foot speed
-bounds.eventgroup(4).upper = zeros(1,2);
+
+%Hip Translation:
+tmp = [STEP_VECTOR(1), STEP_VECTOR(2), 0, 0];
+bounds.eventgroup(2).lower = tmp; % Hip states @ toe off
+bounds.eventgroup(2).upper = tmp;
+
+% initial swing foot speed
+bounds.eventgroup(3).lower = zeros(1,2);
+bounds.eventgroup(3).upper = zeros(1,2);
+
+%Swing foot targets:
+tmp = [...
+    -STEP_VECTOR(1),...     %Foot Two, S, initial, horizontal
+    STEP_VECTOR(1),...      %Foot Two, S, final, horizontal
+    -STEP_VECTOR(2),...     %Foot Two, S, initial, vertical
+    STEP_VECTOR(2)];        %Foot Two, S, final, vertical
+bounds.eventgroup(4).lower = tmp;
+bounds.eventgroup(4).upper = tmp;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
@@ -279,7 +295,7 @@ else
 end
 mesh.method = 'hp1'; % {'hp','hp1'};
 mesh.tolerance = TOLERANCE;
-mesh.maxiteration = MAX_BIG_ITER;
+mesh.maxiteration = MAX_MESH_ITER;
 
 
 %-------------------------------------------------------------------------%
@@ -292,7 +308,7 @@ setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
 setup.mesh = mesh;
-setup.nlp.solver = 'snopt'; %{'snopt', 'ipopt'};
+setup.nlp.solver = 'ipopt'; %{'snopt', 'ipopt'};
 setup.derivatives.supplier = 'sparseCD'; %{'sparseBD', 'sparseFD', 'sparseCD'}
 setup.derivatives.derivativelevel = 'second'; %{'first','second'};
 setup.method = 'RPMintegration';
@@ -311,17 +327,19 @@ solution = output.result.solution;
 %--------------------------------------------------------------------------%
 
 plotInfo = getPlotInfo(output);
+figNums = 2:9;
+plotSolution(plotInfo,figNums);
 figNum = 1;
 animation(plotInfo,figNum);
 
-figNums = 2:9;
-plotSolution(plotInfo,figNums);
 
 if (strcmp(setup.nlp.solver,'ipopt') && output.result.nlpinfo==0) ||...
         (strcmp(setup.nlp.solver,'snopt') && output.result.nlpinfo==1)
-    %Then successful  --  Save the solution:
-    outputPrev = output;
-    save(['oldSoln_' auxdata.cost.method '.mat'],'outputPrev');
+    if saveSolution
+        %Then successful  --  Save the solution:
+        outputPrev = output;
+        save(['oldSoln_' auxdata.cost.method '.mat'],'outputPrev');
+    end
 end
 
 

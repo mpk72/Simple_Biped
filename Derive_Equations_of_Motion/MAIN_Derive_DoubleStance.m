@@ -298,7 +298,7 @@ Write_Dynamics_DoubleStance(input);
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                  Calculate other useful things                          %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-Energy.Potential = simplify(M*g*dot(r0,j));
+Energy.Potential = simplify(M*g*dot(r0,j) + m*g*dot(r2,j) + m*g*dot(r1,j));
 Energy.Kinetic = simplify(0.5*M*norm(dr0)^2);
 
 Power.legOne = F1*dL1;

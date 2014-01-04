@@ -4,7 +4,7 @@ function [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Para
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_DoubleStance()
-% 02-Jan-2014 19:14:09
+% 03-Jan-2014 21:36:24
 %
 %
 % Matthew Kelly 
@@ -46,7 +46,7 @@ Kinematics.dth2 = dth2;
 Power.legOne = F1.*dL1;
 Power.legTwo = F2.*dL2;
 
-Energy.Potential = M.*g.*y0;
+Energy.Potential = g.*(M.*y0 + m.*y2);
 Energy.Kinetic = (M.*(dx0.^2 + dy0.^2))./2;
 Energy.Total = Energy.Potential + Energy.Kinetic;
 
