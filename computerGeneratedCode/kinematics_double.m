@@ -4,7 +4,7 @@ function [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Para
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_DoubleStance()
-% 03-Jan-2014 21:36:24
+% 04-Jan-2014 09:13:50
 %
 %
 % Matthew Kelly 

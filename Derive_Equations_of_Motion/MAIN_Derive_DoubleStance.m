@@ -325,5 +325,19 @@ input.Power = Power;
 
 Write_Kinematics_DoubleStance(input);
 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%               Write getPower                                            %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
+Intermediate = cell(2,2);
+Intermediate(1,:) = {'L1', '(m) Leg One length'};
+Intermediate(2,:) = {'L2', '(m) Leg Two length'};
+Intermediate(3,:) = {'dL1', '(m/s) Leg One length rate'};
+Intermediate(4,:) = {'dL2', '(m/s) Leg Two length rate'};
+Parameters = cell(2,2);
+Parameters(1,:) = {'x2','(m) Foot Two horizontal position wrt Foot One'};
+Parameters(2,:) = {'y2','(m) Foot Two vertical position wrt Foot One'};
+input.Intermediate = Intermediate;
+input.Parameters = Parameters;
+Write_getPower_DoubleStance(input)
 

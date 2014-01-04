@@ -10,7 +10,6 @@ Actuators = input.phase(iphase).control;
 Parameters = input.auxdata.dynamics;
 
 [dStates, contactForces] = dynamics_double(States, Actuators, Parameters);
-[~, Power, ~] = kinematics_double(States, Actuators, Parameters);
 
 output(iphase).dynamics = dStates;
 
@@ -24,6 +23,7 @@ output(iphase).path(:,2) = atan2(H2,V2);
 
 switch input.auxdata.cost.method
     case 'Work'
+        Power = getPower_double(States, Actuators, Parameters);
         alpha = input.auxdata.cost.smoothing.power;
         output(iphase).integrand = ...
             SmoothAbs(Power.legOne,alpha) + ...
@@ -48,7 +48,7 @@ Actuators = input.phase(iphase).control;
 Parameters = input.auxdata.dynamics;
 
 [dStates, contactForces] = dynamics_single(States, Actuators, Parameters);
-[Position, ~, Power] = kinematics_single(States, Actuators, Parameters);
+Position = getPosVel_single(States);
 
 output(iphase).dynamics = dStates;
 
@@ -60,6 +60,7 @@ output(iphase).path(:,2) = Position.footTwo.y;
 
 switch input.auxdata.cost.method
     case 'Work'
+        Power = getPower_single(States, Actuators);
         alpha = input.auxdata.cost.smoothing.power;
         output(iphase).integrand = ...
             SmoothAbs(Power.ankleOne,alpha) +...

@@ -6,15 +6,19 @@ for idxState=1:size(States,1)
 end %idxState
 fprintf(fid,'\n');
 
-for idxAct=1:size(Actuators,1)
-    fprintf(fid,[Actuators{idxAct,1} ' = Actuators(:,' num2str(idxAct) '); %% ' ...
-        Actuators{idxAct,2} '\n']);
-end %idxAct
-fprintf(fid,'\n');
+if exist('Actuators','var')
+    for idxAct=1:size(Actuators,1)
+        fprintf(fid,[Actuators{idxAct,1} ' = Actuators(:,' num2str(idxAct) '); %% ' ...
+            Actuators{idxAct,2} '\n']);
+    end %idxAct
+    fprintf(fid,'\n');
+end
 
-for idxParam=1:size(Parameters,1)
-    fprintf(fid,[Parameters{idxParam,1} ' = Parameters.' ...
-        Parameters{idxParam,1} '; %% ' ...
-        Parameters{idxParam,2} '\n']);
-end %idxState
-fprintf(fid,'\n');
+if exist('Parameters','var')
+    for idxParam=1:size(Parameters,1)
+        fprintf(fid,[Parameters{idxParam,1} ' = Parameters.' ...
+            Parameters{idxParam,1} '; %% ' ...
+            Parameters{idxParam,2} '\n']);
+    end %idxState
+    fprintf(fid,'\n');
+end

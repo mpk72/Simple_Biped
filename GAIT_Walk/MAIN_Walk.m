@@ -23,19 +23,18 @@ DURATION_SINGLE = [0.25; 1.2];
 DURATION_DOUBLE = [0.1; 0.8];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
-STEP_VECTOR = [0.4;-0.15];  %[horizontal; vertical]
+STEP_VECTOR = [0.4;-0.1];  %[horizontal; vertical]
 
 %Common optimization parameters:
-TOLERANCE = 1e-5;
+TOLERANCE = 1e-8;
 MAX_MESH_ITER = 5;
-
-%Actuator Limits
-Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
-Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
-Leg_Max = 2*MASS*GRAVITY;
 
 %Store phase information
 auxdata.phase = {'D','S1'};
+
+%COST FUNCTION:
+auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work','MOD'}
+auxdata.cost.smoothing.power = 0.1;
 
 %Physical parameters
 hip_mass_fraction = 0.85;
@@ -48,9 +47,10 @@ auxdata.goal.Step_Vector = STEP_VECTOR;
 auxdata.dynamics.x2 = -STEP_VECTOR(1);
 auxdata.dynamics.y2 = -STEP_VECTOR(2);
 
-%COST FUNCTION:
-auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work','MOD'}
-auxdata.cost.smoothing.power = 0.1;
+%Actuator Limits
+Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
+Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
+Leg_Max = 2*MASS*GRAVITY;
 
 %enforce friction cone at the contacts
 CoeffFriction = 0.9;  %Between the foot and the ground
@@ -193,7 +193,7 @@ P.Bnd(iphase).Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg 
 
 P.Bnd(iphase).Path = zeros(2,2);
 P.Bnd(iphase).Path(:,1) = BndContactAngle; % (rad) contact force angle on stance foot
-%%%% HACK %%%%    %These bounds are pretend
+%%%% HACK %%%%    %These bounds are pretend - should be f(ground)
 P.Bnd(iphase).Path(:,2) = [-abs(STEP_VECTOR(2)); 2*LEG_LENGTH(UPP)]; %(m) height of swing foot
 %%%% DONE %%%%
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_SINGLE(UPP)];
@@ -293,7 +293,7 @@ else
     mesh.colpointsmin = 5;
     mesh.colpointsmax = 20;
 end
-mesh.method = 'hp1'; % {'hp','hp1'};
+mesh.method = 'hp'; % {'hp','hp1'};
 mesh.tolerance = TOLERANCE;
 mesh.maxiteration = MAX_MESH_ITER;
 

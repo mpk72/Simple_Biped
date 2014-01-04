@@ -4,7 +4,7 @@ function [dStates, contactForces] = dynamics_double(States, Actuators, Parameter
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Dynamics_DoubleStance()
-% 03-Jan-2014 21:36:24
+% 04-Jan-2014 09:13:50
 %
 %
 % Matthew Kelly 
