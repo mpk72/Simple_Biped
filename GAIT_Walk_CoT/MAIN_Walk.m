@@ -25,8 +25,8 @@ MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
 
 %Common optimization parameters:
-TOLERANCE = 1e-8;
-MAX_MESH_ITER = 15;
+TOLERANCE = 1e-1;
+MAX_MESH_ITER = 2;
 
 %Ground and step calculations
 SLOPE = 0;    %Ground slope
@@ -72,7 +72,7 @@ auxdata.phase = {'D','S1'};
 
 %COST FUNCTION:
 auxdata.cost.method = 'Work'; %{'CoT', 'Squared','Work','MOD'}
-auxdata.cost.smoothing.power = 1e6;
+auxdata.cost.ratePenalty = 1e1;
 
 %Physical parameters
 hip_mass_fraction = 0.85;
@@ -91,9 +91,8 @@ auxdata.animation.timeRate = 0.2;
 
 switch auxdata.cost.method
     case 'Work'
-        Max_Integrand = 1e1;
-    case 'Squared'
-        Max_Integrand = 1e-1;
+        Max_Integrand = 10;
+        Max_Int_Rate = 10;
     otherwise
         error('Invalid Cost Function')
 end
@@ -116,21 +115,31 @@ iphase = 1;
 
 P.Bnd(iphase).Duration = DURATION_DOUBLE;
 
-P.Bnd(iphase).States = zeros(2,4);
+P.Bnd(iphase).States = zeros(2,8);
 P.Bnd(iphase).States(:,1) = DOMAIN; % (m) Hip horizontal position
 P.Bnd(iphase).States(:,2) = RANGE; % (m) Hip vertical position One
 P.Bnd(iphase).States(:,3) = 5*[-1;1]; % (m) Hip horizontal velocity
 P.Bnd(iphase).States(:,4) = 2*[-1;1]; % (m) Hip vertical velocity
+P.Bnd(iphase).States(:,5) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,6) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,7) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,8) = [0; Max_Integrand];  %Used for abs()
 
-P.Bnd(iphase).Actuators = zeros(2,2);
+P.Bnd(iphase).Actuators = zeros(2,6);
 P.Bnd(iphase).Actuators(:,1) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg One
 P.Bnd(iphase).Actuators(:,2) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
+P.Bnd(iphase).Actuators(:,3) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,4) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,5) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,6) = Max_Int_Rate*[-1;1]; %Used for abs()
 
-P.Bnd(iphase).Path = zeros(2,2);
+P.Bnd(iphase).Path = zeros(2,4);
 P.Bnd(iphase).Path(:,1) = ...% (rad) contact force angle on foot one
     BndContactAngle - auxdata.ground.normal.double.one; 
 P.Bnd(iphase).Path(:,2) = ... % (rad) contact force angle on foot two
     BndContactAngle - auxdata.ground.normal.double.two;
+P.Bnd(iphase).Path(:,3) = [0;0]; %Used for abs()
+P.Bnd(iphase).Path(:,4) = [0;0]; %Used for abs()
 
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_DOUBLE(UPP)];
 
@@ -161,17 +170,19 @@ bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 %GUESS
 if ~loadPrevSoln  %Use default (bad) guess
     
-    InitialStates = zeros(1,4);
+    InitialStates = zeros(1,8);
     InitialStates(:,1) = -0.6*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
     InitialStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
     InitialStates(:,3) = 0; % (m) Hip horizontal velocity
     InitialStates(:,4) = 0; % (m) Hip vertical velocity
+    InitialStates(:,5:8) = zeros(1,4);  %Used for abs()
     
-    FinalStates = zeros(1,4);
+    FinalStates = zeros(1,8);
     FinalStates(:,1) = -0.3*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
     FinalStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
     FinalStates(:,3) = 0; % (m) Hip horizontal velocity
     FinalStates(:,4) = 0; % (m) Hip vertical velocity
+    FinalStates(:,5:8) = zeros(1,4);  %Used for abs()
     
     guess.phase(iphase).time = [0; mean(P.Bnd(iphase).Duration)];
     
@@ -204,7 +215,7 @@ iphase = 2;
 
 P.Bnd(iphase).Duration = DURATION_SINGLE;
 
-P.Bnd(iphase).States = zeros(2,8);
+P.Bnd(iphase).States = zeros(2,16);
 P.Bnd(iphase).States(:,1) = (pi/2)*[-1;1]; % (rad) Leg One absolute angle
 P.Bnd(iphase).States(:,2) = (pi/2)*[-1;1]; % (rad) Leg Two absolute angle
 P.Bnd(iphase).States(:,3) = LEG_LENGTH; % (m) Leg One length
@@ -213,8 +224,16 @@ P.Bnd(iphase).States(:,5) = (pi/0.5)*[-1;1]; % (rad/s) Leg One absolute angular 
 P.Bnd(iphase).States(:,6) = (pi/0.5)*[-1;1]; % (rad/s) Leg Two absolute angular rate
 P.Bnd(iphase).States(:,7) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg One extension rate
 P.Bnd(iphase).States(:,8) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg Two extensioin rate
+P.Bnd(iphase).States(:,9) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,10) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,11) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,12) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,13) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,14) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,15) = [0; Max_Integrand];  %Used for abs()
+P.Bnd(iphase).States(:,16) = [0; Max_Integrand];  %Used for abs()
 
-P.Bnd(iphase).Actuators = zeros(2,4);
+P.Bnd(iphase).Actuators = zeros(2,12);
 auxdata.cost.Scale.ankle = Ank_Max;
 auxdata.cost.Scale.hip = Hip_Max;
 auxdata.cost.Scale.leg = Leg_Max;
@@ -222,12 +241,25 @@ P.Bnd(iphase).Actuators(:,1) = Leg_Max*[-1;1]; % (N) Compresive axial force in L
 P.Bnd(iphase).Actuators(:,2) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
 P.Bnd(iphase).Actuators(:,3) = Ank_Max*[-1;1]; % (Nm) External torque applied to Leg One
 P.Bnd(iphase).Actuators(:,4) = Hip_Max*[-1;1]; % (Nm) Hip torque applied to Leg Two from Leg One
+P.Bnd(iphase).Actuators(:,5) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,6) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,7) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,8) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,9) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,10) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,11) = Max_Int_Rate*[-1;1]; %Used for abs()
+P.Bnd(iphase).Actuators(:,12) = Max_Int_Rate*[-1;1]; %Used for abs()
 
-P.Bnd(iphase).Path = zeros(2,2);
+P.Bnd(iphase).Path = zeros(2,6);
 P.Bnd(iphase).Path(:,1) = ...; % (rad) contact force angle on stance foot
     BndContactAngle - auxdata.ground.normal.single.one;
 
 P.Bnd(iphase).Path(:,2) = [0; LEG_LENGTH(UPP)]; %Swing foot clears ground
+
+P.Bnd(iphase).Path(:,3) = [0;0]; %Used for abs()
+P.Bnd(iphase).Path(:,4) = [0;0]; %Used for abs()
+P.Bnd(iphase).Path(:,5) = [0;0]; %Used for abs()
+P.Bnd(iphase).Path(:,6) = [0;0]; %Used for abs()
 
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_SINGLE(UPP)];
 
