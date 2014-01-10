@@ -17,6 +17,8 @@ END_D = input.phase(1).finalstate(IdxStateDouble);
 START_S_Polar = input.phase(2).initialstate(IdxStateSingle);
 END_S_Polar = input.phase(2).finalstate(IdxStateSingle);
 
+Duration = input.phase(1).finaltime + input.phase(2).finaltime;
+
 States = [START_S_Polar;END_S_Polar];
 [Position, Velocity] = getPosVel_single(States);
 
@@ -53,5 +55,9 @@ output.eventgroup(4).event = [...
     Position.footTwo.y(1),...
     Position.footTwo.y(2),...
     ];
+
+%%%% Speed constratint:
+output.eventgroup(5).event = ...
+    input.auxdata.ground.step_length/Duration;
 
 end

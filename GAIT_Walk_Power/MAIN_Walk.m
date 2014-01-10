@@ -9,7 +9,7 @@
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
 loadPrevSoln = true;
-saveSolution = true;
+saveSolution = false;
 
 LOW = 1; UPP = 2;
 
@@ -19,15 +19,16 @@ LOW = 1; UPP = 2;
 
 %Configuration parameters:
 LEG_LENGTH = [0.6; 1.0];
-DURATION_SINGLE = [0.25; 1.2];
-DURATION_DOUBLE = [0.1; 0.8];
+DURATION_SINGLE = [0.1; 1.2];
+DURATION_DOUBLE = [0.02; 0.8];
+SPEED = [0.9; 2];
 MASS = 8;   %(kg) total robot mass
 GRAVITY = 9.81;
 
 %Common optimization parameters:
-SOLVER = 'snopt';
-TOLERANCE = 1e-3;
-MAX_MESH_ITER = 3;
+SOLVER = 'ipopt';
+TOLERANCE = 1e-2;
+MAX_MESH_ITER = 1;
 auxdata.cost.weight.actuator = 1e-3;
 auxdata.cost.weight.actuator_rate = 1e-3;
 auxdata.cost.method = 'Work'; %{'Work'}
@@ -65,6 +66,9 @@ auxdata.ground.normal.double.two = n;
 HIP_VECTOR = 0.5*[...
     auxdata.ground.swing.end.x - auxdata.ground.swing.start.x,...
     auxdata.ground.swing.end.y - auxdata.ground.swing.start.y];
+
+auxdata.ground.step_vector = HIP_VECTOR;
+auxdata.ground.step_length = norm(HIP_VECTOR);
 
 %Cartesian problem bounds:
 DOMAIN = 1.25*STEP_DIST*[-1;1];
@@ -336,6 +340,10 @@ tmp = [...
     auxdata.ground.swing.end.y];        %Foot Two, S, final, vertical
 bounds.eventgroup(4).lower = tmp;
 bounds.eventgroup(4).upper = tmp;
+
+%Speed
+bounds.eventgroup(5).lower = SPEED(LOW);
+bounds.eventgroup(5).upper = SPEED(UPP);
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
