@@ -13,8 +13,17 @@ for iphase = 1:length(P.phase)
     switch D(iphase).phase
         case 'S1' %Single stance, with Stance_Foot == Foot_One
             
-            States = output.result.interpsolution.phase(iphase).state(:,1:8);
-            Actuators = output.result.interpsolution.phase(iphase).state(:,9:12);
+            IdxState = 1:8;
+            IdxAct = 9:12;
+            IdxActRate = 1:4;
+            IdxAbsPos = 5:8;
+            IdxAbsNeg = 9:12;
+            
+            States = output.result.interpsolution.phase(iphase).state(:,IdxState);
+            Actuators = output.result.interpsolution.phase(iphase).state(:,IdxAct);
+            Actuator_Rate = output.result.interpsolution.phase(iphase).control(:,IdxActRate);
+            AbsPos = output.result.interpsolution.phase(iphase).control(:,IdxAbsPos);
+            AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
             Parameters = P.dynamics;
             
             D(iphase).state.th1 = States(:,1); % (rad) Leg One absolute angle
@@ -66,11 +75,31 @@ for iphase = 1:length(P.phase)
             
             D(iphase).energy = Energy;
             
+            [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
+                P, AbsPos, AbsNeg, D(iphase).phase);
+            D(iphase).integrand.value = cost;
+            D(iphase).integrand.absX = info.absX;
+            D(iphase).integrand.actSquared = info.actSquared;
+            D(iphase).integrand.rateSquared = info.rateSquared;
+            
+            D(iphase).objective.value = output.result.objective;
+            D(iphase).objective.method = P.cost.method;
+            
         case 'D' %Double stance, with Stance_Foot at origin
             
-            States = output.result.interpsolution.phase(iphase).state(:,1:4);
-            Actuators = output.result.interpsolution.phase(iphase).state(:,5:6);
+            IdxState = 1:4;
+            IdxAct = 5:6;
+            IdxActRate = 1:2;
+            IdxAbsPos = 3:4;
+            IdxAbsNeg = 5:6;
+            
+            States = output.result.interpsolution.phase(iphase).state(:,IdxState);
+            Actuators = output.result.interpsolution.phase(iphase).state(:,IdxAct);
+            Actuator_Rate = output.result.interpsolution.phase(iphase).control(:,IdxActRate);
+            AbsPos = output.result.interpsolution.phase(iphase).control(:,IdxAbsPos);
+            AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
             Parameters = P.dynamics;
+            
             [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Parameters);
             [~, contactForces] = dynamics_double(States, Actuators, Parameters);
             
@@ -99,7 +128,7 @@ for iphase = 1:length(P.phase)
             D(iphase).contact.Ang2 = th - pi/2;     %(rad) Foot Two, contact force angle from vertical
             D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.double.one; %Bounds on the contact angle
             D(iphase).contact.Bnd2 = P.ground.normal.bounds + P.ground.normal.double.two; %Bounds on the contact angle
-           
+            
             D(iphase).position.footOne.x = zeros(nTime,1); %(m) Foot One, horizontal position
             D(iphase).position.footOne.y = zeros(nTime,1); %(m) Foot One, vertical position
             D(iphase).position.footTwo.x = Parameters.x2*ones(nTime,1); %(m) Foot Two, horizontal position
@@ -120,6 +149,16 @@ for iphase = 1:length(P.phase)
             D(iphase).power.hip = zeros(nTime,1); %(W) Hip, power consumption
             
             D(iphase).energy = Energy;
+            
+            [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
+                P, AbsPos, AbsNeg, D(iphase).phase);
+            D(iphase).integrand.value = cost;
+            D(iphase).integrand.absX = info.absX;
+            D(iphase).integrand.actSquared = info.actSquared;
+            D(iphase).integrand.rateSquared = info.rateSquared;
+            
+            D(iphase).objective.value = output.result.objective;
+            D(iphase).objective.method = P.cost.method;
             
         otherwise
             error('Unsupported Phase')

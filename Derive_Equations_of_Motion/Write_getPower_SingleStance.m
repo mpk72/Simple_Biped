@@ -40,9 +40,10 @@ SubWrite__Parse_Inputs;
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
 names = fieldnames(Power);
-for idxPos=1:length(names)
-    fprintf(fid,['Power.' names{idxPos} ' = '...
-        vectorize(Power.(names{idxPos})) ';\n']);
+fprintf(fid,'Power = zeros(size(Actuators));\n');
+for idx=1:length(names)
+    fprintf(fid,['Power(:,' num2str(idx) ') = '...
+        vectorize(Power.(names{idx})) '; %%' names{idx} '\n']);
 end
 fprintf(fid,'\n');
 

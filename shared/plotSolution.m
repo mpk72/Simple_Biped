@@ -8,6 +8,9 @@ Color_One = 'r';
 Color_Two = 'b';
 Color_Hip = 'm';
 
+Color_A = [0.5,0.8,0.1];
+Color_B = [0.1,0.6,0.6];
+
 FontSize.title = 16;
 FontSize.xlabel = 14;
 FontSize.ylabel = 14;
@@ -234,8 +237,6 @@ for iphase = 1:length(PHASE)
     ylabel('Power (W)','FontSize',FontSize.ylabel)
     dottedLine(D.time(1),axis,iphase);
     
-    
-    
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         Contact Forces                                  %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -282,6 +283,32 @@ for iphase = 1:length(PHASE)
     legend('Kinetic','Potential','Total')
     dottedLine(D.time(1),axis,iphase);
     
+    %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+    %                         Integrand                                       %
+    %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+    if isfield(D,'integrand')
+        figH = figure(figNums(9));
+        set(figH,'Name','Integrand','NumberTitle','off')
+        
+        subplot(2,1,1); hold on;
+        plot(D.time,D.integrand.value,'k-','LineWidth',LineWidth)
+        title(['Integrand Value  --  Objective = ' ...
+            num2str(D.objective.value) ...
+            '  --  Method: ' D.objective.method])
+        xlabel('Time (s)')
+        dottedLine(D.time(1),axis,iphase);
+        
+        subplot(2,1,2); hold on;
+        plot(D.time,D.integrand.absX,'k-','LineWidth',LineWidth)
+        plot(D.time,D.integrand.actSquared,'Color',Color_A,'LineWidth',LineWidth)
+        plot(D.time,D.integrand.rateSquared,'Color',Color_B,'LineWidth',LineWidth)
+        legend('absX','u^2','du^2')
+        title('Integrand components')
+        xlabel('Time (s)')
+        dottedLine(D.time(1),axis,iphase);
+        set(gca,'YScale','log');
+        
+    end
 end %iphase
 
 end

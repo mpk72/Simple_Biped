@@ -304,11 +304,11 @@ Velocity.footTwo = simplify(dr2);
 %Velocity.footOne = simplify(dr1);
 Velocity.CoM = simplify((m*dr1 + M*dr0 + m*dr2)/(2*m + M));
 
+Power.legOne = F1*dL1;
+Power.legTwo = F2*dL2;
 Power.ankleOne = T1*dth1;
 %Power.ankleTwo = sym('0');
 Power.hip = Thip*(dth2-dth1);
-Power.legOne = F1*dL1;
-Power.legTwo = F2*dL2;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %               Write Energy, Kinematics, and Power                       %

@@ -4,7 +4,7 @@ function [Position, Velocity, Power, Energy] = kinematics_single(States, Actuato
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_SingleStance()
-% 04-Jan-2014 09:41:51
+% 10-Jan-2014 10:32:54
 %
 %
 % Matthew Kelly 
@@ -43,10 +43,10 @@ Velocity.footTwo.y = dL1.*cos(th1) - dL2.*cos(th2) - L1.*dth1.*sin(th1) + L2.*dt
 Velocity.CoM.x = -(m.*(dL1.*sin(th1) - dL2.*sin(th2) + L1.*dth1.*cos(th1) - L2.*dth2.*cos(th2)) + M.*(dL1.*sin(th1) + L1.*dth1.*cos(th1)))./(M + 2.*m);
 Velocity.CoM.y = (m.*(dL1.*cos(th1) - dL2.*cos(th2) - L1.*dth1.*sin(th1) + L2.*dth2.*sin(th2)) + M.*(dL1.*cos(th1) - L1.*dth1.*sin(th1)))./(M + 2.*m);
 
-Power.ankleOne = T1.*dth1;
-Power.hip = -Thip.*(dth1 - dth2);
 Power.legOne = F1.*dL1;
 Power.legTwo = F2.*dL2;
+Power.ankleOne = T1.*dth1;
+Power.hip = -Thip.*(dth1 - dth2);
 
 Energy.Potential = g.*m.*(L1.*cos(th1) - L2.*cos(th2)) + L1.*M.*g.*cos(th1);
 Energy.Kinetic = (M.*(dL1.^2 + L1.^2.*dth1.^2))./2 + (m.*((dL1.*cos(th1) - dL2.*cos(th2) - L1.*dth1.*sin(th1) + L2.*dth2.*sin(th2)).^2 + (dL1.*sin(th1) - dL2.*sin(th2) + L1.*dth1.*cos(th1) - L2.*dth2.*cos(th2)).^2))./2;

@@ -9,7 +9,7 @@
 clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
 
 loadPrevSoln = true;
-saveSolution = false;
+saveSolution = true;
 
 LOW = 1; UPP = 2;
 
@@ -27,12 +27,13 @@ GRAVITY = 9.81;
 %Common optimization parameters:
 SOLVER = 'snopt';
 TOLERANCE = 1e-3;
-MAX_MESH_ITER = 2;
-auxdata.cost.weight.actuator = 1e-4;
-auxdata.cost.weight.actuator_rate = 1e-4;
+MAX_MESH_ITER = 3;
+auxdata.cost.weight.actuator = 1e-3;
+auxdata.cost.weight.actuator_rate = 1e-3;
+auxdata.cost.method = 'Work'; %{'Work'}
 
 %Ground and step calculations
-SLOPE = 0.6;    %Ground slope
+SLOPE = 0;    %Ground slope
 CURVATURE = 0;   %Ground curvature 
 STEP_DIST = 0.4;   %Horizontal component of the step vector
 groundFunc = @(x)ground(x,SLOPE,CURVATURE);
@@ -89,11 +90,17 @@ Hip_Max_Rate = Hip_Max/Actuator_Time_Constant;
 Leg_Max_Rate = Leg_Max/Actuator_Time_Constant;
 
 %COST FUNCTION:
-auxdata.cost.method = 'Work'; %{'Work'}
-auxdata.cost.scale.leg = Leg_Max;
-auxdata.cost.scale.ank =  Ank_Max;
-auxdata.cost.scale.hip =  Hip_Max;
-auxdata.cost.scale.timeConst = Actuator_Time_Constant;
+if Leg_Max==0 || Ank_Max==0 || Hip_Max==0
+    error('Scaling requires non-zero actuator saturation!')
+end
+auxdata.cost.scale.single_torque = 1./[...
+    Leg_Max, Leg_Max, Ank_Max, Hip_Max];
+auxdata.cost.scale.double_torque = 1./[...
+    Leg_Max, Leg_Max];
+auxdata.cost.scale.single_rate = ...
+    Actuator_Time_Constant*auxdata.cost.scale.single_torque;
+auxdata.cost.scale.double_rate = ...
+    Actuator_Time_Constant*auxdata.cost.scale.double_torque;
 
 %For animation only:
 %1 = Real time, 0.5 = slow motion, 2.0 = fast forward
@@ -380,7 +387,7 @@ solution = output.result.solution;
 %--------------------------------------------------------------------------%
 
 plotInfo = getPlotInfo(output);
-figNums = 2:9;
+figNums = 2:10;
 plotSolution(plotInfo,figNums);
 figNum = 1;
 animation(plotInfo,figNum);

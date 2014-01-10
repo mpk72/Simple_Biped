@@ -4,7 +4,7 @@ function Power = getPower_single(States, Actuators)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_DoubleStance()
-% 04-Jan-2014 09:41:51
+% 10-Jan-2014 10:32:54
 %
 %
 % Matthew Kelly 
@@ -25,9 +25,10 @@ F2 = Actuators(:,2); % (N) Compresive axial force in Leg Two
 T1 = Actuators(:,3); % (Nm) External torque applied to Leg One
 Thip = Actuators(:,4); % (Nm) Hip torque applied to Leg Two from Leg One
 
-Power.ankleOne = T1.*dth1;
-Power.hip = -Thip.*(dth1 - dth2);
-Power.legOne = F1.*dL1;
-Power.legTwo = F2.*dL2;
+Power = zeros(size(Actuators));
+Power(:,1) = F1.*dL1; %legOne
+Power(:,2) = F2.*dL2; %legTwo
+Power(:,3) = T1.*dth1; %ankleOne
+Power(:,4) = -Thip.*(dth1 - dth2); %hip
 
 end

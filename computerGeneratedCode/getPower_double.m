@@ -4,7 +4,7 @@ function Power = getPower_double(States, Actuators, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_getPower_DoubleStance()
-% 04-Jan-2014 09:13:50
+% 10-Jan-2014 10:32:56
 %
 %
 % Matthew Kelly 
@@ -27,7 +27,8 @@ L2 = ((x0 - x2).^2 + (y0 - y2).^2).^(1./2); %(m) Leg Two length
 dL1 = (dx0.*x0 + dy0.*y0)./L1; %(m/s) Leg One length rate
 dL2 = (dx0.*(x0 - x2) + dy0.*(y0 - y2))./L2; %(m/s) Leg Two length rate
 
-Power.legOne = F1.*dL1;
-Power.legTwo = F2.*dL2;
+Power = zeros(size(Actuators));
+Power(:,1) = F1.*dL1; %legOne
+Power(:,2) = F2.*dL2; %legTwo
 
 end
