@@ -1,15 +1,6 @@
-%---------------------------------------------------%
-% Walking Test Gait                                 %
-%---------------------------------------------------%
-%MAIN_Walk
+function [OUTPUT, plotInfo] = Trajectory_Walk(INPUT)
 
-%---------------------------------------------------%
-% Misc Setup                                        %
-%---------------------------------------------------%
-clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
-
-loadPrevSoln = true;
-saveSolution = false;
+% addpath ../computerGeneratedCode; addpath ../Shared;
 
 LOW = 1; UPP = 2;
 
@@ -18,30 +9,30 @@ LOW = 1; UPP = 2;
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
 %Configuration parameters:
-LEG_LENGTH = [0.6; 1.0];
-DURATION_SINGLE = [0.1; 1.2];
-DURATION_DOUBLE = [0.02; 0.8];
-SPEED = [0.9; 2];
-MASS = 8;   %(kg) total robot mass
-GRAVITY = 9.81;
+LEG_LENGTH = INPUT.physical.leg_length;
+DURATION_SINGLE = INPUT.constraint.duration_single_stance;
+DURATION_DOUBLE = INPUT.constraint.duration_double_stance;
+SPEED = INPUT.constraint.speed;
+MASS = INPUT.physical.totel_mass; 
+GRAVITY = INPUT.physical.gravity;
 
 %Common optimization parameters:
-SOLVER = 'ipopt';
-TOLERANCE = 1e-2;
-MAX_MESH_ITER = 1;
-auxdata.cost.weight.actuator = 1e-3;
-auxdata.cost.weight.actuator_rate = 1e-3;
-auxdata.cost.method = 'Work'; %{'Work'}
+SOLVER = INPUT.optimize.solver;
+TOLERANCE = INPUT.optimize.tolerance;
+MAX_MESH_ITER = INPUT.optimize.max_mesh_iter;
+auxdata.cost.weight.actuator = INPUT.cost.actuator_weight;
+auxdata.cost.weight.actuator_rate = INPUT.cost.actuator_rate_weight;
+auxdata.cost.method = INPUT.cost.method;
 
 %Ground and step calculations
 SLOPE = 0;    %Ground slope
 CURVATURE = 0;   %Ground curvature 
-STEP_DIST = 0.4;   %Horizontal component of the step vector
+STEP_DIST = INPUT.constraint.step_distance;   %Horizontal component of the step vector
 groundFunc = @(x)ground(x,SLOPE,CURVATURE);
 auxdata.ground.func = groundFunc;
 
 %enforce friction cone at the contacts
-CoeffFriction = 0.8;  %Between the foot and the ground
+CoeffFriction = INPUT.physical.coeff_friction;  %Between the foot and the ground
 BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 auxdata.ground.normal.bounds = BndContactAngle;
 
@@ -79,7 +70,7 @@ RANGE = [min(gnd); max(gnd)+2*LEG_LENGTH(UPP)];
 auxdata.phase = {'D','S1'};
 
 %Physical parameters
-hip_mass_fraction = 0.85;
+hip_mass_fraction = INPUT.physical.hip_mass_fraction;
 auxdata.dynamics.m = 0.5*(1-hip_mass_fraction)*MASS;   %(kg) foot mass
 auxdata.dynamics.M = hip_mass_fraction*MASS;    %(kg) hip Mass
 auxdata.dynamics.g = GRAVITY;   %(m/s^2) Gravitational acceleration
@@ -112,13 +103,13 @@ auxdata.animation.timeRate = 0.2;
 
 switch auxdata.cost.method
     case 'Work'
-        Max_Integrand = 100;
+        Max_Integrand = 1000;
     otherwise
         error('Invalid Cost Function')
 end
 
 %Load the previous solution, if available
-if loadPrevSoln
+if INPUT.io.loadPrevSoln
     load(['oldSoln_' auxdata.cost.method '.mat']);
 end
 
@@ -184,7 +175,16 @@ bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
 %GUESS
-if ~loadPrevSoln  %Use default (bad) guess
+if INPUT.io.loadPrevSoln  
+    iphase=1;
+    
+    guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
+    guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
+    guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
+    guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
+else
+    
+    %Use default (bad) guess
     
     InitialStates = zeros(1,6);
     InitialStates(:,1) = -0.6*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
@@ -204,13 +204,6 @@ if ~loadPrevSoln  %Use default (bad) guess
     meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
     guess.phase(iphase).integral = meanIntegral;
     
-else  %Load guess from file
-    iphase=1;
-    
-    guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
-    guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
-    guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
-    guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
 end
 
 
@@ -286,8 +279,13 @@ bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
 %GUESS
-if ~loadPrevSoln   %Use default (bad) guess
-    
+if INPUT.io.loadPrevSoln   
+       guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
+    guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
+    guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
+    guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
+
+else %Use default (bad) guess
     InitialStates = mean(P.Bnd(iphase).States,1);
     InitialStates(1) = pi/3;   %Stance leg angle
     InitialStates(2) = -pi/3;   %Swing leg angle
@@ -305,12 +303,7 @@ if ~loadPrevSoln   %Use default (bad) guess
     
     meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
     guess.phase(iphase).integral = meanIntegral;
-    
-else  %Load guess from file
-    guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
-    guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
-    guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
-    guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
+
 end
 
 
@@ -349,7 +342,7 @@ bounds.eventgroup(5).upper = SPEED(UPP);
 %                            Mesh Parameters                              %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-if loadPrevSoln
+if INPUT.io.loadPrevSoln
     mesh = outputPrev.result.setup.mesh;
 else
     nSections = 5;  %Number of sections
@@ -387,27 +380,34 @@ setup.nlp.options.tolerance = TOLERANCE;
 %------------------------- Solve Problem Using GPOPS2 --------------------%
 %-------------------------------------------------------------------------%
 output = gpops2(setup);
-solution = output.result.solution;
 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                        Output (Save, Plot, Animation)                   %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-%--------------------------------------------------------------------------%
-%------------------------------- Plot Solution ----------------------------%
-%--------------------------------------------------------------------------%
+if INPUT.io.createPlots || INPUT.io.runAnimation || nargout==2
+    plotInfo = getPlotInfo(output);
+end
+if INPUT.io.createPlots
+    figNums = 2:10;
+    plotSolution(plotInfo,figNums);
+end
+if INPUT.io.runAnimation
+    figNum = 1;
+    animation(plotInfo,figNum);
+end
 
-plotInfo = getPlotInfo(output);
-figNums = 2:10;
-plotSolution(plotInfo,figNums);
-figNum = 1;
-animation(plotInfo,figNum);
-
-
-if (strcmp(setup.nlp.solver,'ipopt') && output.result.nlpinfo==0) ||...
-        (strcmp(setup.nlp.solver,'snopt') && output.result.nlpinfo==1)
-    if saveSolution
+if (strcmp(SOLVER,'ipopt') && output.result.nlpinfo==0) ||...
+        (strcmp(SOLVER,'snopt') && output.result.nlpinfo==1)
+    if INPUT.io.saveSolution
         %Then successful  --  Save the solution:
         outputPrev = output;
         save(['oldSoln_' auxdata.cost.method '.mat'],'outputPrev');
     end
+end
+
+OUTPUT = output;
+
 end
 
 
