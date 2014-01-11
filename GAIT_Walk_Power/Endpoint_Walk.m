@@ -1,10 +1,20 @@
 function output = Endpoint_Walk(input)
 
+STEP_DIST = input.parameter;
+groundFunc = input.auxdata.ground.func;
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                     Objective Function                                  %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-output.objective = input.phase(1).integral + input.phase(2).integral;
-
+switch input.auxdata.cost.method
+    case 'Work'
+        output.objective = input.phase(1).integral + input.phase(2).integral;
+    case 'CoT'
+        Dyn = input.auxdata.dynamics;
+        weight = (Dyn.M + 2*Dyn.m)*Dyn.g;
+        output.objective = ...
+            (input.phase(1).integral + input.phase(2).integral)/weight;
+end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                      Discrete Constraints                               %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -33,13 +43,22 @@ END_S = [...
     Velocity.hip.x(2),...
     Velocity.hip.y(2)];
 
+%%%% TARGETS %%%%
+Swing_Start_x = -STEP_DIST;
+Swing_Start_y = feval(groundFunc,-STEP_DIST,[]);
+Swing_End_x = STEP_DIST;
+Swing_End_y = feval(groundFunc,STEP_DIST,[]);
+Hip_Vec_x = 0.5*(Swing_End_x-Swing_Start_x);
+Hip_Vec_y = 0.5*(Swing_End_y-Swing_Start_y);
+
+
 %%%% Hip states continuous at toe-off
 output.eventgroup(1).event = END_D - START_S;
 
-%%%% Hip states must move by STEP_VECTOR over the course of the step
+%%%% Hip states must move by Hip_Vec over the course of the step
 output.eventgroup(2).event = [...
-    END_S(1) - START_D(1),...
-    END_S(2) - START_D(2),...
+    END_S(1) - START_D(1) - Hip_Vec_x,...
+    END_S(2) - START_D(2) - Hip_Vec_y,...
     END_S(3) - START_D(3),...
     END_S(4) - START_D(4)];
 
@@ -50,14 +69,15 @@ output.eventgroup(3).event = [...
 
 %%%% Enforce step vector for swing foot, horizontal vector
 output.eventgroup(4).event = [...
-    Position.footTwo.x(1),...
-    Position.footTwo.x(2),...
-    Position.footTwo.y(1),...
-    Position.footTwo.y(2),...
+    Position.footTwo.x(1) - Swing_Start_x,...
+    Position.footTwo.x(2) - Swing_End_x,...
+    Position.footTwo.y(1) - Swing_Start_y,...
+    Position.footTwo.y(2) - Swing_End_y,...
     ];
 
 %%%% Speed constratint:
+%%%% HACK %%%%    This is only the horizontal component of the speed
 output.eventgroup(5).event = ...
-    input.auxdata.ground.step_length/Duration;
-
+    STEP_DIST/Duration;
+%%%% DONE %%%%
 end

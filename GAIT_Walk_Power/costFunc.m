@@ -1,12 +1,10 @@
 function [cost, path, info] = costFunc(States, Actuators, Actuator_Rate,...
-    auxdata, AbsPos, AbsNeg, Phase)
-
-C = auxdata.cost;
+    P_Dyn, C, AbsPos, AbsNeg, Phase, Step_Dist)
 
 switch Phase
     case 'D'
         
-        Power = getPower_double(States, Actuators, auxdata.dynamics);
+        Power = getPower_double(States, Actuators, P_Dyn);
         path = Power - (AbsPos-AbsNeg);
         
         Act = Actuators;
@@ -34,16 +32,20 @@ switch Phase
         error('Invalid Phase for cost function')
 end
 
+alpha = C.weight.actuator;
+beta = C.weight.actuator_rate;
+
+absX = sum(AbsPos+AbsNeg,2);  %abs(x) cost function
+actSquared = alpha*sum(Act.^2,2);   %torque squared regularization
+rateSquared = beta*sum(ActRate.^2,2);  %torque rate squared regularization
+
 switch C.method
     case 'Work'
-        alpha = C.weight.actuator;
-        beta = C.weight.actuator_rate;
-        
-        absX = sum(AbsPos+AbsNeg,2);  %abs(x) cost function
-        actSquared = alpha*sum(Act.^2,2);   %torque squared regularization
-        rateSquared = beta*sum(ActRate.^2,2);  %torque rate squared regularization
-        
         cost = absX + actSquared + rateSquared;
+    case 'CoT'
+        %%%% HACK %%%%  Should be Step_Length, and needs scaling parameters
+        cost = (absX + actSquared + rateSquared)./Step_Dist;
+        %%%% DONE %%%%
     otherwise
         error('Unsupported cost function')
 end

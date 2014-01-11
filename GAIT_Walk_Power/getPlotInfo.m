@@ -26,6 +26,8 @@ for iphase = 1:length(P.phase)
             AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
             Parameters = P.dynamics;
             
+            Step_Dist = output.result.solution.parameter;
+            
             D(iphase).state.th1 = States(:,1); % (rad) Leg One absolute angle
             D(iphase).state.th2 = States(:,2); % (rad) Leg Two absolute angle
             D(iphase).state.L1 = States(:,3); % (m) Leg One length
@@ -57,7 +59,8 @@ for iphase = 1:length(P.phase)
             D(iphase).contact.Ang1 = th - pi/2;      %(rad) Foot One, contact force angle from vertical
             D(iphase).contact.Mag2 = zeros(nTime,1); %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = zeros(nTime,1); %(rad) Foot Two, contact force angle from vertical
-            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.single.one; %Bounds on the contact angle
+            [~, n1] = feval(P.ground.func,0,[]);
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + n1; %Bounds on the contact angle
             D(iphase).contact.Bnd2 = zeros(2,1);
             
             [Position, Velocity, Power, Energy] = kinematics_single(States, Actuators, Parameters);
@@ -76,7 +79,7 @@ for iphase = 1:length(P.phase)
             D(iphase).energy = Energy;
             
             [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
-                P, AbsPos, AbsNeg, D(iphase).phase);
+                P.dynamics,P.cost , AbsPos, AbsNeg, D(iphase).phase, Step_Dist);
             D(iphase).integrand.value = cost;
             D(iphase).integrand.absX = info.absX;
             D(iphase).integrand.actSquared = info.actSquared;
@@ -84,6 +87,8 @@ for iphase = 1:length(P.phase)
             
             D(iphase).objective.value = output.result.objective;
             D(iphase).objective.method = P.cost.method;
+            
+            D(iphase).step.distance = Step_Dist;            
             
         case 'D' %Double stance, with Stance_Foot at origin
             
@@ -99,6 +104,12 @@ for iphase = 1:length(P.phase)
             AbsPos = output.result.interpsolution.phase(iphase).control(:,IdxAbsPos);
             AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
             Parameters = P.dynamics;
+            
+            Step_Dist = output.result.solution.parameter;
+            
+            Parameters.x2 = -Step_Dist;
+            [Parameters.y2, n2] = feval(P.ground.func,-Step_Dist,[]);
+            [~, n1] = feval(P.ground.func,0,[]);
             
             [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Parameters);
             [~, contactForces] = dynamics_double(States, Actuators, Parameters);
@@ -126,8 +137,8 @@ for iphase = 1:length(P.phase)
             [th, r] = cart2pol(D(iphase).contact.H2, D(iphase).contact.V2);
             D(iphase).contact.Mag2 = r;             %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = th - pi/2;     %(rad) Foot Two, contact force angle from vertical
-            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.double.one; %Bounds on the contact angle
-            D(iphase).contact.Bnd2 = P.ground.normal.bounds + P.ground.normal.double.two; %Bounds on the contact angle
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + n1; %Bounds on the contact angle
+            D(iphase).contact.Bnd2 = P.ground.normal.bounds + n2; %Bounds on the contact angle
             
             D(iphase).position.footOne.x = zeros(nTime,1); %(m) Foot One, horizontal position
             D(iphase).position.footOne.y = zeros(nTime,1); %(m) Foot One, vertical position
@@ -151,7 +162,7 @@ for iphase = 1:length(P.phase)
             D(iphase).energy = Energy;
             
             [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
-                P, AbsPos, AbsNeg, D(iphase).phase);
+                Parameters,P.cost , AbsPos, AbsNeg, D(iphase).phase, Step_Dist);
             D(iphase).integrand.value = cost;
             D(iphase).integrand.absX = info.absX;
             D(iphase).integrand.actSquared = info.actSquared;
@@ -159,6 +170,8 @@ for iphase = 1:length(P.phase)
             
             D(iphase).objective.value = output.result.objective;
             D(iphase).objective.method = P.cost.method;
+            
+            D(iphase).step.distance = Step_Dist;
             
         otherwise
             error('Unsupported Phase')

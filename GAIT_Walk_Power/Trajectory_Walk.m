@@ -18,52 +18,29 @@ GRAVITY = INPUT.physical.gravity;
 
 %Common optimization parameters:
 SOLVER = INPUT.optimize.solver;
-TOLERANCE = INPUT.optimize.tolerance;
+TOL_OPT = INPUT.optimize.tol_opt;
+TOL_MESH = INPUT.optimize.tol_mesh;
 MAX_MESH_ITER = INPUT.optimize.max_mesh_iter;
 auxdata.cost.weight.actuator = INPUT.cost.actuator_weight;
 auxdata.cost.weight.actuator_rate = INPUT.cost.actuator_rate_weight;
 auxdata.cost.method = INPUT.cost.method;
 
 %Ground and step calculations
-SLOPE = 0;    %Ground slope
-CURVATURE = 0;   %Ground curvature 
+SLOPE = INPUT.constraint.ground_slope;    %Ground slope
+CURVATURE = INPUT.constraint.ground_curvature;   %Ground curvature 
 STEP_DIST = INPUT.constraint.step_distance;   %Horizontal component of the step vector
-groundFunc = @(x)ground(x,SLOPE,CURVATURE);
+groundFunc = @(x,d)ground(x,SLOPE,CURVATURE,d,INPUT.constraint.center_clearance);
 auxdata.ground.func = groundFunc;
+auxdata.ground.clearance = INPUT.constraint.center_clearance;
 
 %enforce friction cone at the contacts
 CoeffFriction = INPUT.physical.coeff_friction;  %Between the foot and the ground
 BndContactAngle = atan(CoeffFriction)*[-1;1]; %=atan2(H,V);
 auxdata.ground.normal.bounds = BndContactAngle;
 
-%Get the swing foot boundary constraints
-auxdata.ground.swing.start.x = -STEP_DIST;
-auxdata.ground.swing.end.x = STEP_DIST;
-auxdata.ground.swing.start.y = groundFunc(-STEP_DIST);
-auxdata.ground.swing.end.y = groundFunc(STEP_DIST);
-
-%Get the double stance configuration right
-auxdata.dynamics.x2 = auxdata.ground.swing.start.x;    % Horizontal Position, Foot Two, Double Stance
-auxdata.dynamics.y2 = auxdata.ground.swing.start.y;  % Vertical Position, Foot Two, Double Stance
-
-%Get the slopes for the stance feet:
-[~, n] = groundFunc(0);
-auxdata.ground.normal.double.one = n;
-auxdata.ground.normal.single.one = n;
-[~, n] = groundFunc(-STEP_DIST);
-auxdata.ground.normal.double.two = n;
-
-%Hip translation
-HIP_VECTOR = 0.5*[...
-    auxdata.ground.swing.end.x - auxdata.ground.swing.start.x,...
-    auxdata.ground.swing.end.y - auxdata.ground.swing.start.y];
-
-auxdata.ground.step_vector = HIP_VECTOR;
-auxdata.ground.step_length = norm(HIP_VECTOR);
-
 %Cartesian problem bounds:
-DOMAIN = 1.25*STEP_DIST*[-1;1];
-gnd = groundFunc(linspace(DOMAIN(1),DOMAIN(2),1000));
+DOMAIN = 1.25*STEP_DIST(UPP)*[-1;1];
+gnd = groundFunc(linspace(DOMAIN(1),DOMAIN(2),1000),[]);
 RANGE = [min(gnd); max(gnd)+2*LEG_LENGTH(UPP)];
 
 %Store phase information
@@ -77,9 +54,9 @@ auxdata.dynamics.g = GRAVITY;   %(m/s^2) Gravitational acceleration
 
 %Actuator Limits
 Actuator_Time_Constant = 0.8;   %How quickly it can change from zero to max
-Ank_Max = 0.2*LEG_LENGTH(UPP)*MASS*GRAVITY;
-Hip_Max = 0.8*LEG_LENGTH(UPP)*MASS*GRAVITY;
-Leg_Max = 2*MASS*GRAVITY;
+Ank_Max = INPUT.physical.actuator_ank_saturate*LEG_LENGTH(UPP)*MASS*GRAVITY;
+Hip_Max = INPUT.physical.actuator_hip_saturate*LEG_LENGTH(UPP)*MASS*GRAVITY;
+Leg_Max = INPUT.physical.actuator_leg_saturate*MASS*GRAVITY;
 Ank_Max_Rate = Ank_Max/Actuator_Time_Constant;
 Hip_Max_Rate = Hip_Max/Actuator_Time_Constant;
 Leg_Max_Rate = Leg_Max/Actuator_Time_Constant;
@@ -103,7 +80,9 @@ auxdata.animation.timeRate = 0.2;
 
 switch auxdata.cost.method
     case 'Work'
-        Max_Integrand = 1000;
+        Max_Integrand = 200;
+    case 'CoT'
+        Max_Integrand = 200;
     otherwise
         error('Invalid Cost Function')
 end
@@ -142,10 +121,8 @@ P.Bnd(iphase).Actuators(:,5) = Max_Integrand*[0;1]; % (N) abs(power(legOne))  --
 P.Bnd(iphase).Actuators(:,6) = Max_Integrand*[0;1]; % (N) abs(power(legTwo))  --  NEG
 
 P.Bnd(iphase).Path = zeros(2,4);
-P.Bnd(iphase).Path(:,1) = ...% (rad) contact force angle on foot one
-    BndContactAngle - auxdata.ground.normal.double.one; 
-P.Bnd(iphase).Path(:,2) = ... % (rad) contact force angle on foot two
-    BndContactAngle - auxdata.ground.normal.double.two;
+P.Bnd(iphase).Path(:,1) = BndContactAngle; 
+P.Bnd(iphase).Path(:,2) = BndContactAngle;
 %Columns 3:4 are for the absolute value constraints
 
 P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_DOUBLE(UPP)];
@@ -247,8 +224,7 @@ P.Bnd(iphase).Actuators(:,11) = Max_Integrand*[0;1]; % (N) abs(power(ankle))  --
 P.Bnd(iphase).Actuators(:,12) = Max_Integrand*[0;1]; % (N) abs(power(hip))  --  NEG
 
 P.Bnd(iphase).Path = zeros(2,6);
-P.Bnd(iphase).Path(:,1) = ...; % (rad) contact force angle on stance foot
-    BndContactAngle - auxdata.ground.normal.single.one;
+P.Bnd(iphase).Path(:,1) = BndContactAngle; %Stance foot friction cone
 P.Bnd(iphase).Path(:,2) = [0; LEG_LENGTH(UPP)]; %Swing foot clears ground
 %Columns 3:6 are for abs() constraints
 
@@ -306,6 +282,12 @@ else %Use default (bad) guess
 
 end
 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                             Parameters                                  %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+bounds.parameter.lower = STEP_DIST(LOW);
+bounds.parameter.upper = STEP_DIST(UPP);
+guess.parameter = mean(STEP_DIST);
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                             Event Group                                 %
@@ -315,24 +297,17 @@ end
 bounds.eventgroup(1).lower = zeros(1,4);
 bounds.eventgroup(1).upper = zeros(1,4);
 
-%Hip state change across entire step. Translates by HIP_VECTOR, but the
-%velocity must be the same at the start and end of the step
-tmp = [HIP_VECTOR(1), HIP_VECTOR(2), 0, 0];
-bounds.eventgroup(2).lower = tmp; 
-bounds.eventgroup(2).upper = tmp;
+%Hip translation and velocity defect
+bounds.eventgroup(2).lower = zeros(1,4); 
+bounds.eventgroup(2).upper = zeros(1,4);
 
 % initial swing foot speed
 bounds.eventgroup(3).lower = zeros(1,2);
 bounds.eventgroup(3).upper = zeros(1,2);
 
 %Swing foot targets:
-tmp = [...
-    auxdata.ground.swing.start.x,...     %Foot Two, S, initial, horizontal
-    auxdata.ground.swing.end.x,...      %Foot Two, S, final, horizontal
-    auxdata.ground.swing.start.y,...     %Foot Two, S, initial, vertical
-    auxdata.ground.swing.end.y];        %Foot Two, S, final, vertical
-bounds.eventgroup(4).lower = tmp;
-bounds.eventgroup(4).upper = tmp;
+bounds.eventgroup(4).lower = zeros(1,4); 
+bounds.eventgroup(4).upper = zeros(1,4);
 
 %Speed
 bounds.eventgroup(5).lower = SPEED(LOW);
@@ -351,7 +326,7 @@ mesh.phase(2).fraction  = ones(1,nSections)/nSections;
 mesh.colpointsmin = 5;
 mesh.colpointsmax = 20;
 mesh.method = 'hp'; % {'hp','hp1'};
-mesh.tolerance = TOLERANCE;
+mesh.tolerance = TOL_MESH;
 mesh.maxiteration = MAX_MESH_ITER;
 
 
@@ -370,7 +345,7 @@ setup.derivatives.supplier = 'sparseCD'; %{'sparseBD', 'sparseFD', 'sparseCD'}
 setup.derivatives.derivativelevel = 'second'; %{'first','second'};
 setup.method = 'RPMintegration';
 %setup.scales.method = 'automatic-bounds';
-setup.nlp.options.tolerance = TOLERANCE;
+setup.nlp.options.tolerance = TOL_OPT;
 
 %-------------------------------------------------------------------------%
 %------------------------- Solve Problem Using GPOPS2 --------------------%

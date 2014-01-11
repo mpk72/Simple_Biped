@@ -123,7 +123,7 @@ for iphase = 1:length(PHASE)
             max([max(Kin.x0),max(Kin.x1),max(Kin.x2)])];
         xBnd(1) = xBnd(1) - 0.1*diff(xBnd);
         xBnd(2) = xBnd(2) + 0.1*diff(xBnd);
-        plotGround(GROUND,xBnd);
+        plotGround(GROUND,xBnd,D.step.distance);
         legend('Hip','Foot One','Foot Two','Ground')
     else
         legend('Hip','Foot One','Foot Two')
@@ -324,12 +324,13 @@ end
 
 end
 
-function plotGround(ground,xBnd)
+function plotGround(ground,xBnd,Step_Dist)
 
 x = linspace(xBnd(1),xBnd(2),100);
-y = feval(ground.func,x);
+[y,~,c] = feval(ground.func,x,Step_Dist);
 
 plot(x,y,'k-','LineWidth',2);
+plot(x,c,'k:','LineWidth',1);
 
 end
 
