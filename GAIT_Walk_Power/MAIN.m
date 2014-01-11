@@ -12,19 +12,19 @@ INPUT.physical.gravity = 9.81;
 INPUT.physical.coeff_friction = 0.8;
 
 %%%% Constraints %%%%
-INPUT.constraint.duration_single_stance = [0.1; 1.2];
-INPUT.constraint.duration_double_stance = [0.02; 0.8];
-INPUT.constraint.speed = [0.1; 0.2];
+INPUT.constraint.duration_single_stance = [0.02; 2];
+INPUT.constraint.duration_double_stance = [0.02; 2];
+INPUT.constraint.speed = [0.2; 0.2];
 INPUT.constraint.step_distance = 0.4;
 
 %%%% Optimization %%%%
-INPUT.optimize.solver = 'ipopt';   %{'ipopt', 'snopt'}
-INPUT.optimize.tolerance = 1e-3;
+INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
+INPUT.optimize.tolerance = 1e-8;
 INPUT.optimize.max_mesh_iter = 2;
 
 %%%% Cost Function %%%%
-INPUT.cost.actuator_weight = 1e-3;
-INPUT.cost.actuator_rate_weight = 1e-3;
+INPUT.cost.actuator_weight = 1e-1;   %1e-3
+INPUT.cost.actuator_rate_weight = 1e-1;   %1e-3
 INPUT.cost.method = 'Work';
 
 %%%% Input / Output parameters %%%%

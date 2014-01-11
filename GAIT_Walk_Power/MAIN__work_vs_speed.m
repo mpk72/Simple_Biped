@@ -19,7 +19,7 @@ INPUT.constraint.step_distance = 0.4;
 
 %%%% Optimization %%%%
 INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
-INPUT.optimize.tolerance = 1e-3;
+INPUT.optimize.tolerance = 1e-4;
 INPUT.optimize.max_mesh_iter = 3;
 
 %%%% Cost Function %%%%
@@ -37,8 +37,8 @@ INPUT.io.runAnimation = false;
 %                      Run Trajectory Optimization:                       %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-N_data_points = 25;
-min_speed = 0.2;
+N_data_points = 40;
+min_speed = 0.15;
 max_speed = 2.0;
 
 List_Speeds = linspace(min_speed,max_speed,N_data_points);

@@ -342,18 +342,14 @@ bounds.eventgroup(5).upper = SPEED(UPP);
 %                            Mesh Parameters                              %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-if INPUT.io.loadPrevSoln
-    mesh = outputPrev.result.setup.mesh;
-else
-    nSections = 5;  %Number of sections
-    nColPts = 8;  %Collocation points per phase
-    mesh.phase(1).colpoints = nColPts*ones(1,nSections);
-    mesh.phase(1).fraction  = ones(1,nSections)/nSections;
-    mesh.phase(2).colpoints = nColPts*ones(1,nSections);
-    mesh.phase(2).fraction  = ones(1,nSections)/nSections;
-    mesh.colpointsmin = 5;
-    mesh.colpointsmax = 20;
-end
+nSections = 5;  %Number of sections
+nColPts = 8;  %Collocation points per phase
+mesh.phase(1).colpoints = nColPts*ones(1,nSections);
+mesh.phase(1).fraction  = ones(1,nSections)/nSections;
+mesh.phase(2).colpoints = nColPts*ones(1,nSections);
+mesh.phase(2).fraction  = ones(1,nSections)/nSections;
+mesh.colpointsmin = 5;
+mesh.colpointsmax = 20;
 mesh.method = 'hp'; % {'hp','hp1'};
 mesh.tolerance = TOLERANCE;
 mesh.maxiteration = MAX_MESH_ITER;
