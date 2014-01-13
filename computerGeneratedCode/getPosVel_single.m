@@ -4,7 +4,7 @@ function [Position, Velocity] = getPosVel_single(States)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_SingleStance()
-% 10-Jan-2014 10:32:54
+% 12-Jan-2014 20:02:01
 %
 %
 % Matthew Kelly 

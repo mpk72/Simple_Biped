@@ -13,7 +13,21 @@ for iphase = 1:length(P.phase)
     switch D(iphase).phase
         case 'S1' %Single stance, with Stance_Foot == Foot_One
             
-            States = output.result.interpsolution.phase(iphase).state;
+            IdxState = 1:8;
+            IdxAct = 9:12;
+            IdxActRate = 1:4;
+            IdxAbsPos = 5:8;
+            IdxAbsNeg = 9:12;
+            
+            States = output.result.interpsolution.phase(iphase).state(:,IdxState);
+            Actuators = output.result.interpsolution.phase(iphase).state(:,IdxAct);
+            Actuator_Rate = output.result.interpsolution.phase(iphase).control(:,IdxActRate);
+            AbsPos = output.result.interpsolution.phase(iphase).control(:,IdxAbsPos);
+            AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
+            Parameters = P.dynamics;
+            
+            Step_Dist = output.result.solution.parameter;
+            
             D(iphase).state.th1 = States(:,1); % (rad) Leg One absolute angle
             D(iphase).state.th2 = States(:,2); % (rad) Leg Two absolute angle
             D(iphase).state.L1 = States(:,3); % (m) Leg One length
@@ -27,14 +41,12 @@ for iphase = 1:length(P.phase)
             D(iphase).state.dx = zeros(nTime,1); % (m) Foot One Horizontal Velocity
             D(iphase).state.dy = zeros(nTime,1); % (m) Foot One Vertical Velocity
             
-            Actuators = output.result.interpsolution.phase(iphase).control;
             D(iphase).control.F1 = Actuators(:,1); % (N) Compresive axial force in Leg One
             D(iphase).control.F2 = Actuators(:,2); % (N) Compresive axial force in Leg Two
             D(iphase).control.T1 = Actuators(:,3); % (Nm) External torque applied to Leg One
             D(iphase).control.Thip = Actuators(:,4); % (Nm) Hip torque applied to Leg Two from Leg One
             D(iphase).control.T2 = zeros(nTime,1); % (Nm) External torque applied to Leg Two
             
-            Parameters = P.dynamics;
             [~, contactForces] = dynamics_single(States, Actuators, Parameters);
             
             D(iphase).contact.H1 = contactForces(:,1); %(N) Foot One, horizontal contact force
@@ -47,7 +59,8 @@ for iphase = 1:length(P.phase)
             D(iphase).contact.Ang1 = th - pi/2;      %(rad) Foot One, contact force angle from vertical
             D(iphase).contact.Mag2 = zeros(nTime,1); %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = zeros(nTime,1); %(rad) Foot Two, contact force angle from vertical
-            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.single.one; %Bounds on the contact angle
+            [~, n1] = feval(P.ground.func,0,[]);
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + n1; %Bounds on the contact angle
             D(iphase).contact.Bnd2 = zeros(2,1);
             
             [Position, Velocity, Power, Energy] = kinematics_single(States, Actuators, Parameters);
@@ -65,11 +78,39 @@ for iphase = 1:length(P.phase)
             
             D(iphase).energy = Energy;
             
+            [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
+                P.dynamics,P.cost , AbsPos, AbsNeg, D(iphase).phase, Step_Dist);
+            D(iphase).integrand.value = cost;
+            D(iphase).integrand.absX = info.absX;
+            D(iphase).integrand.actSquared = info.actSquared;
+            D(iphase).integrand.rateSquared = info.rateSquared;
+            
+            D(iphase).objective.value = output.result.objective;
+            D(iphase).objective.method = P.cost.method;
+            
+            D(iphase).step.distance = Step_Dist;            
+            
         case 'D' %Double stance, with Stance_Foot at origin
             
-            States = output.result.interpsolution.phase(iphase).state;
-            Actuators = output.result.interpsolution.phase(iphase).control;
+            IdxState = 1:4;
+            IdxAct = 5:6;
+            IdxActRate = 1:2;
+            IdxAbsPos = 3:4;
+            IdxAbsNeg = 5:6;
+            
+            States = output.result.interpsolution.phase(iphase).state(:,IdxState);
+            Actuators = output.result.interpsolution.phase(iphase).state(:,IdxAct);
+            Actuator_Rate = output.result.interpsolution.phase(iphase).control(:,IdxActRate);
+            AbsPos = output.result.interpsolution.phase(iphase).control(:,IdxAbsPos);
+            AbsNeg = output.result.interpsolution.phase(iphase).control(:,IdxAbsNeg);
             Parameters = P.dynamics;
+            
+            Step_Dist = output.result.solution.parameter;
+            
+            Parameters.x2 = -Step_Dist;
+            [Parameters.y2, n2] = feval(P.ground.func,-Step_Dist,[]);
+            [~, n1] = feval(P.ground.func,0,[]);
+            
             [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Parameters);
             [~, contactForces] = dynamics_double(States, Actuators, Parameters);
             
@@ -96,9 +137,9 @@ for iphase = 1:length(P.phase)
             [th, r] = cart2pol(D(iphase).contact.H2, D(iphase).contact.V2);
             D(iphase).contact.Mag2 = r;             %(N) Foot Two, contact force magnitude
             D(iphase).contact.Ang2 = th - pi/2;     %(rad) Foot Two, contact force angle from vertical
-            D(iphase).contact.Bnd1 = P.ground.normal.bounds + P.ground.normal.double.one; %Bounds on the contact angle
-            D(iphase).contact.Bnd2 = P.ground.normal.bounds + P.ground.normal.double.two; %Bounds on the contact angle
-           
+            D(iphase).contact.Bnd1 = P.ground.normal.bounds + n1; %Bounds on the contact angle
+            D(iphase).contact.Bnd2 = P.ground.normal.bounds + n2; %Bounds on the contact angle
+            
             D(iphase).position.footOne.x = zeros(nTime,1); %(m) Foot One, horizontal position
             D(iphase).position.footOne.y = zeros(nTime,1); %(m) Foot One, vertical position
             D(iphase).position.footTwo.x = Parameters.x2*ones(nTime,1); %(m) Foot Two, horizontal position
@@ -119,6 +160,18 @@ for iphase = 1:length(P.phase)
             D(iphase).power.hip = zeros(nTime,1); %(W) Hip, power consumption
             
             D(iphase).energy = Energy;
+            
+            [cost, ~, info] = costFunc(States, Actuators, Actuator_Rate,...
+                Parameters,P.cost , AbsPos, AbsNeg, D(iphase).phase, Step_Dist);
+            D(iphase).integrand.value = cost;
+            D(iphase).integrand.absX = info.absX;
+            D(iphase).integrand.actSquared = info.actSquared;
+            D(iphase).integrand.rateSquared = info.rateSquared;
+            
+            D(iphase).objective.value = output.result.objective;
+            D(iphase).objective.method = P.cost.method;
+            
+            D(iphase).step.distance = Step_Dist;
             
         otherwise
             error('Unsupported Phase')

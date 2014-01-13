@@ -71,7 +71,7 @@ RANGE = [min(gnd); max(gnd)+2*LEG_LENGTH(UPP)];
 auxdata.phase = {'D','S1'};
 
 %COST FUNCTION:
-auxdata.cost.method = 'Work'; %{'CoT', 'Squared','Work','MOD'}
+auxdata.cost.method = 'Squared'; %{'CoT', 'Squared','Work','MOD'}
 auxdata.cost.smoothing.power = 1e6;
 
 %Physical parameters
