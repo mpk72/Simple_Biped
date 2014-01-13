@@ -16,8 +16,8 @@ INPUT.physical.actuator_ank_saturate = 0.2; % (_)*(Length*Mass*Gravity)
 
 %%%% Constraints %%%%
 INPUT.constraint.duration_single_stance = [0.02; 2];
-INPUT.constraint.duration_double_stance = [0.02; 2];
-INPUT.constraint.speed = [0.05; 2.0];
+INPUT.constraint.duration_flight = [0.02; 2];
+INPUT.constraint.speed = 0.05*[1;1]; %[0.05; 2.0];
 INPUT.constraint.step_distance = [0.05; 1.0];
 INPUT.constraint.ground_slope = 0;
 INPUT.constraint.ground_curvature = 0;
@@ -25,9 +25,9 @@ INPUT.constraint.center_clearance = 0.02;
 
 %%%% Optimization %%%%
 INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
-INPUT.optimize.tol_mesh = 1e-3;
-INPUT.optimize.tol_opt = 1e-6;
-INPUT.optimize.max_mesh_iter = 3;
+INPUT.optimize.tol_mesh = 1e-2;
+INPUT.optimize.tol_opt = 1e-3;
+INPUT.optimize.max_mesh_iter = 2;
 
 %%%% Cost Function %%%%
 INPUT.cost.actuator_weight = 1e-2;   %1e-3
@@ -44,6 +44,6 @@ INPUT.io.runAnimation = true;
 %                      Run Trajectory Optimization:                       %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-[output, plotInfo] = Trajectory_Walk(INPUT);
+[output, plotInfo] = Trajectory_Run(INPUT);
 
 

@@ -16,7 +16,7 @@ INPUT.physical.actuator_ank_saturate = 0.2; % (_)*(Length*Mass*Gravity)
 
 %%%% Constraints %%%%
 INPUT.constraint.duration_single_stance = [0.02; 2];
-INPUT.constraint.duration_double_stance = [0.02; 2];
+INPUT.constraint.duration_flight = [0.02; 2];
 INPUT.constraint.speed = 0.1*[1;1]; %[0.05; 2.0];
 INPUT.constraint.step_distance = [0.05; 1.0];
 INPUT.constraint.ground_slope = 0;
@@ -46,7 +46,7 @@ INPUT.io.runAnimation = false;
 
 N_data_points = 50;
 min_speed = 0.1;
-max_speed = 2.0;
+max_speed = 3.0;
 D.speed = linspace(min_speed,max_speed,N_data_points);
 
 DATA = cell(N_data_points,1);
@@ -63,7 +63,7 @@ for i=1:N_data_points
     else
         INPUT.io.loadPrevSoln = true;
     end
-    output = Trajectory_Walk(INPUT);
+    output = Trajectory_Run(INPUT);
     DATA{i} = output;
     
     %%%%Now collect someuseful information:

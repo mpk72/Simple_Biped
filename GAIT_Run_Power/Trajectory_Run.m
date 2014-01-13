@@ -1,64 +1,4 @@
-%---------------------------------------------------%
-% Walking Test Gait                                 %
-%---------------------------------------------------%
-%MAIN_Walk
-clc; clear; addpath ../computerGeneratedCode; addpath ../Shared;
-
-%%%% Physical parameters %%%%
-INPUT.physical.leg_length = [0.6; 1.0];
-INPUT.physical.totel_mass = 8;  %(kg) total robot mass
-INPUT.physical.hip_mass_fraction = 0.85;
-INPUT.physical.gravity = 9.81;
-INPUT.physical.coeff_friction = 0.8;
-%%%% HACK %%%% Really strong actuators
-INPUT.physical.actuator_leg_saturate = 10;   % (_)*(Mass*Gravity)
-INPUT.physical.actuator_hip_saturate = 1; % (_)*(Length*Mass*Gravity)
-INPUT.physical.actuator_ank_saturate = 0.5; % (_)*(Length*Mass*Gravity)
-%%%% DONE %%%%
-
-%%%% Constraints %%%%
-INPUT.constraint.duration_single_stance = [0.01; 2];
-INPUT.constraint.duration_flight = [0.01; 2];
-INPUT.constraint.speed = [0.2; 2.0];
-INPUT.constraint.step_distance = [0.3; 1.0];
-INPUT.constraint.ground_slope = 0;
-INPUT.constraint.ground_curvature = 0;
-INPUT.constraint.center_clearance = 0.02;
-
-%%%% Optimization %%%%
-INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
-INPUT.optimize.tol_mesh = 1e-2;
-INPUT.optimize.tol_opt = 1e-3;
-INPUT.optimize.max_mesh_iter = 1;
-
-%%%% Cost Function %%%%
-INPUT.cost.actuator_weight = 1e-1;   %1e-3
-INPUT.cost.actuator_rate_weight = 1e-1;   %1e-3
-INPUT.cost.method = 'Work';  %{'Work','CoT'}
-
-%%%% Input / Output parameters %%%%
-INPUT.io.loadPrevSoln = true;
-INPUT.io.saveSolution = false;
-INPUT.io.createPlots = true;
-INPUT.io.runAnimation = false;
-
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                      Run Trajectory Optimization:                       %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                      Run Trajectory Optimization:                       %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                      Run Trajectory Optimization:                       %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%                      Run Trajectory Optimization:                       %
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-
-% % % % function [OUTPUT, plotInfo] = Trajectory_Run(INPUT)
-
-
-
+function [OUTPUT, plotInfo] = Trajectory_Run(INPUT)
 
 % addpath ../computerGeneratedCode; addpath ../Shared;
 
@@ -395,6 +335,10 @@ bounds.eventgroup(6).upper = zeros(1,2);
 bounds.eventgroup(7).lower = zeros(1,2);
 bounds.eventgroup(7).upper = zeros(1,2);
 
+%%%% Speed
+bounds.eventgroup(8).lower = SPEED(LOW);
+bounds.eventgroup(8).upper = SPEED(UPP);
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -461,7 +405,7 @@ end
 
 OUTPUT = output;
 
-%%%%end
+end
 
 
 
