@@ -32,10 +32,10 @@ Position = getPosVel_flight(States);
 STEP_DIST = input.phase(iphase).parameter;
 [~,~,min_height] = feval(groundFunc,Position.footOne.x,STEP_DIST);
 output(iphase).path(:,1) = ... %Foot height above ground
-    Position.footOne.y - min_height;
+    Position.footOne.y;% %%%% HACK %%%% - min_height;
 [~,~,min_height] = feval(groundFunc,Position.footTwo.x,STEP_DIST);
 output(iphase).path(:,2) = ... %Foot height above ground
-    Position.footTwo.y - min_height;
+    Position.footTwo.y;% %%%% HACK %%%%  - min_height;
 
 P_Cost = input.auxdata.cost;
 [cost, path] = costFunc(States, Actuators, Actuator_Rate,...
