@@ -2,34 +2,28 @@ function [cost, path, info] = costFunc(States, Actuators, Actuator_Rate,...
     P_Dyn, C, AbsPos, AbsNeg, Phase, Step_Dist)
 
 switch Phase
-    case 'D'
-        
+    case 'D'   
         Power = getPower_double(States, Actuators, P_Dyn);
-        path = Power - (AbsPos-AbsNeg);
-        
-        Act = Actuators;
-        for i=1:size(Act,2)
-            Act(:,i) = Act(:,i)*C.scale.double_torque(i);
-        end
-        ActRate = Actuator_Rate;
-        for i=1:size(ActRate,2)
-            ActRate(:,i) = ActRate(:,i)*C.scale.double_rate(i);
-        end
         
     case 'S1'
         Power = getPower_single(States, Actuators);
-        path = Power - (AbsPos-AbsNeg);
         
-        Act = Actuators;
-        for i=1:size(Act,2)
-            Act(:,i) = Act(:,i)*C.scale.single_torque(i);
-        end
-        ActRate = Actuator_Rate;
-        for i=1:size(ActRate,2)
-            ActRate(:,i) = ActRate(:,i)*C.scale.single_rate(i);
-        end
+    case 'F' 
+        Power = getPower_flight(States, Actuators);
+        
     otherwise
         error('Invalid Phase for cost function')
+end
+
+path = Power - (AbsPos-AbsNeg);
+
+Act = Actuators;
+for i=1:size(Act,2)
+    Act(:,i) = Act(:,i)*C.scale.single_torque(i);
+end
+ActRate = Actuator_Rate;
+for i=1:size(ActRate,2)
+    ActRate(:,i) = ActRate(:,i)*C.scale.single_rate(i);
 end
 
 alpha = C.weight.actuator;

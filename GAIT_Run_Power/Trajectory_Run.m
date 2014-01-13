@@ -19,8 +19,8 @@ INPUT.physical.actuator_ank_saturate = 0.2; % (_)*(Length*Mass*Gravity)
 %%%% Constraints %%%%
 INPUT.constraint.duration_single_stance = [0.02; 2];
 INPUT.constraint.duration_flight = [0.02; 2];
-INPUT.constraint.speed = [0.05; 2.0];
-INPUT.constraint.step_distance = [0.05; 1.0];
+INPUT.constraint.speed = 0.7*[-1;1];%[0.05; 2.0];
+INPUT.constraint.step_distance = 0.5*[-1;1];%[0.05; 1.0];
 INPUT.constraint.ground_slope = 0;
 INPUT.constraint.ground_curvature = 0;
 INPUT.constraint.center_clearance = 0.02;
@@ -34,7 +34,7 @@ INPUT.optimize.max_mesh_iter = 1;
 %%%% Cost Function %%%%
 INPUT.cost.actuator_weight = 1e-1;   %1e-3
 INPUT.cost.actuator_rate_weight = 1e-1;   %1e-3
-INPUT.cost.method = 'CoT';  %{'Work','CoT'}
+INPUT.cost.method = 'Work';  %{'Work','CoT'}
 
 %%%% Input / Output parameters %%%%
 INPUT.io.loadPrevSoln = false;
@@ -164,44 +164,40 @@ iphase = 1;
 
 P.Bnd(iphase).Duration = DURATION_FLIGHT;
 
+P.Bnd(iphase).States = zeros(2,15);
+P.Bnd(iphase).States(:,1) = DOMAIN; % (m) Foot One Horizontal Position
+P.Bnd(iphase).States(:,2) = RANGE; % (m) Foot One Vertical Position
+P.Bnd(iphase).States(:,3) = (pi/2)*[-1;1]; % (rad) Leg One absolute angle
+P.Bnd(iphase).States(:,4) = (pi/2)*[-1;1]; % (rad) Leg Two absolute angle
+P.Bnd(iphase).States(:,5) = LEG_LENGTH; % (m) Leg One length
+P.Bnd(iphase).States(:,6) = LEG_LENGTH; % (m) Leg Two length
+P.Bnd(iphase).States(:,7) = 2*SPEED(UPP)*[-1;1]; % (m) Foot One Horizontal Velocity
+P.Bnd(iphase).States(:,8) = 2*SPEED(UPP)*[-1;1]; % (m) Foot One Vertical Velocity
+P.Bnd(iphase).States(:,9) = (pi/0.5)*[-1;1]; % (rad/s) Leg One absolute angular rate
+P.Bnd(iphase).States(:,10) = (pi/0.5)*[-1;1]; % (rad/s) Leg Two absolute angular rate
+P.Bnd(iphase).States(:,11) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg One extension rate
+P.Bnd(iphase).States(:,12) = (diff(LEG_LENGTH)/0.3)*[-1;1]; % (m/s) Leg Two extensioin rate
+P.Bnd(iphase).States(:,13) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg One
+P.Bnd(iphase).States(:,14) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
+P.Bnd(iphase).States(:,15) = Hip_Max*[-1;1]; % (N) Hip Torque
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-P.Bnd(iphase).States = zeros(2,6);
-P.Bnd(iphase).States(:,1) = DOMAIN; % (m) Hip horizontal position
-P.Bnd(iphase).States(:,2) = RANGE; % (m) Hip vertical position One
-P.Bnd(iphase).States(:,3) = 5*[-1;1]; % (m) Hip horizontal velocity
-P.Bnd(iphase).States(:,4) = 2*[-1;1]; % (m) Hip vertical velocity
-P.Bnd(iphase).States(:,5) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg One
-P.Bnd(iphase).States(:,6) = Leg_Max*[-1;1]; % (N) Compresive axial force in Leg Two
-
-P.Bnd(iphase).Actuators = zeros(2,6);
+P.Bnd(iphase).Actuators = zeros(2,9);
 P.Bnd(iphase).Actuators(:,1) = Leg_Max_Rate*[-1;1]; % (N) Compresive axial force in Leg One
 P.Bnd(iphase).Actuators(:,2) = Leg_Max_Rate*[-1;1]; % (N) Compresive axial force in Leg Two
-P.Bnd(iphase).Actuators(:,3) = Max_Integrand*[0;1]; % (N) abs(power(legOne))  --  POS
-P.Bnd(iphase).Actuators(:,4) = Max_Integrand*[0;1]; % (N) abs(power(legTwo))  --  POS
-P.Bnd(iphase).Actuators(:,5) = Max_Integrand*[0;1]; % (N) abs(power(legOne))  --  NEG
-P.Bnd(iphase).Actuators(:,6) = Max_Integrand*[0;1]; % (N) abs(power(legTwo))  --  NEG
+P.Bnd(iphase).Actuators(:,3) = Hip_Max_Rate*[-1;1]; % (N) Hip Torque
+P.Bnd(iphase).Actuators(:,4) = Max_Integrand*[0;1]; % (N) abs(power(legOne))  --  POS
+P.Bnd(iphase).Actuators(:,5) = Max_Integrand*[0;1]; % (N) abs(power(legTwo))  --  POS
+P.Bnd(iphase).Actuators(:,6) = Max_Integrand*[0;1]; % (N) abs(power(hip))  --  POS
+P.Bnd(iphase).Actuators(:,7) = Max_Integrand*[0;1]; % (N) abs(power(legOne))  --  NEG
+P.Bnd(iphase).Actuators(:,8) = Max_Integrand*[0;1]; % (N) abs(power(legTwo))  --  NEG
+P.Bnd(iphase).Actuators(:,9) = Max_Integrand*[0;1]; % (N) abs(power(hip))  --  NEG
 
-P.Bnd(iphase).Path = zeros(2,4);
-P.Bnd(iphase).Path(:,1) = BndContactAngle; 
-P.Bnd(iphase).Path(:,2) = BndContactAngle;
-%Columns 3:4 are for the absolute value constraints
+P.Bnd(iphase).Path = zeros(2,5);
+P.Bnd(iphase).Path(:,1) = [0;LEG_LENGTH(UPP)];   %Foot One Ground Clearance
+P.Bnd(iphase).Path(:,2) = [0;LEG_LENGTH(UPP)];   %Foot One Ground Clearance
+%Columns 3:5 are for the absolute value constraints
 
-P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_DOUBLE(UPP)];
+P.Bnd(iphase).Integral = [0; Max_Integrand*DURATION_FLIGHT(UPP)];
 
 %Start at time = 0
 bounds.phase(iphase).initialtime.lower = 0;
@@ -239,14 +235,9 @@ else
     
     %Use default (bad) guess
     
-    InitialStates = zeros(1,6);
-    InitialStates(:,1) = -0.6*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
-    InitialStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
-    
-    FinalStates = zeros(1,6);
-    FinalStates(:,1) = -0.3*STEP_DIST(1); % (m) Hip horizontal position wrt Foot One
-    FinalStates(:,2) = 0.8*LEG_LENGTH(UPP); % (m) Hip vertical position wrt Foot One
-    
+    InitialStates = mean(P.Bnd(iphase).States);   
+    FinalStates = mean(P.Bnd(iphase).States);
+        
     guess.phase(iphase).time = [0; mean(P.Bnd(iphase).Duration)];
     
     guess.phase(iphase).state = [InitialStates ; FinalStates ];
@@ -377,17 +368,21 @@ bounds.eventgroup(1).upper = zeros(1,4);
 bounds.eventgroup(2).lower = zeros(1,4); 
 bounds.eventgroup(2).upper = zeros(1,4);
 
-% initial swing foot speed
-bounds.eventgroup(3).lower = zeros(1,2);
-bounds.eventgroup(3).upper = zeros(1,2);
+% swing foot continuity at heel strike 
+bounds.eventgroup(3).lower = zeros(1,4);
+bounds.eventgroup(3).upper = zeros(1,4);
 
-%Swing foot targets:
+% swing foot continuity at toe off and periodic constraint
 bounds.eventgroup(4).lower = zeros(1,4); 
 bounds.eventgroup(4).upper = zeros(1,4);
 
+% Foot One position at heel strike
+bounds.eventgroup(5).lower = zeros(1,2); 
+bounds.eventgroup(5).upper = zeros(1,2);
+
 %Speed
-bounds.eventgroup(5).lower = SPEED(LOW);
-bounds.eventgroup(5).upper = SPEED(UPP);
+bounds.eventgroup(6).lower = SPEED(LOW);
+bounds.eventgroup(6).upper = SPEED(UPP);
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
@@ -409,9 +404,9 @@ mesh.maxiteration = MAX_MESH_ITER;
 %-------------------------------------------------------------------------%
 %------------- Assemble Information into Problem Structure ---------------%
 %-------------------------------------------------------------------------%
-setup.name = 'Gait_Walk';
-setup.functions.continuous = @Continuous_Walk;
-setup.functions.endpoint = @Endpoint_Walk;
+setup.name = 'Gait_Run';
+setup.functions.continuous = @Continuous_Run;
+setup.functions.endpoint = @Endpoint_Run;
 setup.auxdata = auxdata;
 setup.bounds = bounds;
 setup.guess = guess;
@@ -455,7 +450,7 @@ end
 
 OUTPUT = output;
 
-end
+%%%%end
 
 
 
