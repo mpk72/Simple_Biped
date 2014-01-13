@@ -19,14 +19,14 @@ INPUT.physical.actuator_ank_saturate = 0.2; % (_)*(Length*Mass*Gravity)
 %%%% Constraints %%%%
 INPUT.constraint.duration_single_stance = [0.02; 2];
 INPUT.constraint.duration_flight = [0.02; 2];
-INPUT.constraint.speed = 0.7*[-1;1];%[0.05; 2.0];
-INPUT.constraint.step_distance = 0.5*[-1;1];%[0.05; 1.0];
+INPUT.constraint.speed = [0.05; 2.0];
+INPUT.constraint.step_distance = [0.05; 1.0];
 INPUT.constraint.ground_slope = 0;
 INPUT.constraint.ground_curvature = 0;
 INPUT.constraint.center_clearance = 0.02;
 
 %%%% Optimization %%%%
-INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
+INPUT.optimize.solver = 'ipopt';   %{'ipopt', 'snopt'}
 INPUT.optimize.tol_mesh = 1e-1;
 INPUT.optimize.tol_opt = 1e-2;
 INPUT.optimize.max_mesh_iter = 1;
@@ -40,7 +40,7 @@ INPUT.cost.method = 'Work';  %{'Work','CoT'}
 INPUT.io.loadPrevSoln = false;
 INPUT.io.saveSolution = false;
 INPUT.io.createPlots = true;
-INPUT.io.runAnimation = true;
+INPUT.io.runAnimation = false;
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                      Run Trajectory Optimization:                       %
@@ -73,7 +73,7 @@ LEG_LENGTH = INPUT.physical.leg_length;
 DURATION_SINGLE = INPUT.constraint.duration_single_stance;
 DURATION_FLIGHT = INPUT.constraint.duration_flight;
 SPEED = INPUT.constraint.speed;
-MASS = INPUT.physical.totel_mass; 
+MASS = INPUT.physical.totel_mass;
 GRAVITY = INPUT.physical.gravity;
 
 %Common optimization parameters:
@@ -87,7 +87,7 @@ auxdata.cost.method = INPUT.cost.method;
 
 %Ground and step calculations
 SLOPE = INPUT.constraint.ground_slope;    %Ground slope
-CURVATURE = INPUT.constraint.ground_curvature;   %Ground curvature 
+CURVATURE = INPUT.constraint.ground_curvature;   %Ground curvature
 STEP_DIST = INPUT.constraint.step_distance;   %Horizontal component of the step vector
 groundFunc = @(x,d)ground(x,SLOPE,CURVATURE,d,INPUT.constraint.center_clearance);
 auxdata.ground.func = groundFunc;
@@ -224,7 +224,7 @@ bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
 %GUESS
-if INPUT.io.loadPrevSoln  
+if INPUT.io.loadPrevSoln
     iphase=1;
     
     guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
@@ -235,9 +235,16 @@ else
     
     %Use default (bad) guess
     
-    InitialStates = mean(P.Bnd(iphase).States);   
+    InitialStates = mean(P.Bnd(iphase).States);
+    InitialStates(1) = -0.3;    %Foot One horizontal position
+    InitialStates(2) = 0.1;    %Foot One vertical posiiotn
+    InitialStates(3) = -pi/3;   %Stance leg angle
+    InitialStates(4) = pi/3;   %Swing leg angle
+    
     FinalStates = mean(P.Bnd(iphase).States);
-        
+    FinalStates(3) = -pi/3;   %Stance leg angle
+    FinalStates(4) = pi/3;   %Swing leg angle
+    
     guess.phase(iphase).time = [0; mean(P.Bnd(iphase).Duration)];
     
     guess.phase(iphase).state = [InitialStates ; FinalStates ];
@@ -322,12 +329,12 @@ bounds.phase(iphase).path.lower = P.Bnd(iphase).Path(LOW,:);
 bounds.phase(iphase).path.upper = P.Bnd(iphase).Path(UPP,:);
 
 %GUESS
-if INPUT.io.loadPrevSoln   
-       guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
+if INPUT.io.loadPrevSoln
+    guess.phase(iphase).state = outputPrev.result.solution.phase(iphase).state;
     guess.phase(iphase).control = outputPrev.result.solution.phase(iphase).control;
     guess.phase(iphase).integral = outputPrev.result.solution.phase(iphase).integral;
     guess.phase(iphase).time = outputPrev.result.solution.phase(iphase).time;
-
+    
 else %Use default (bad) guess
     InitialStates = mean(P.Bnd(iphase).States,1);
     InitialStates(1) = pi/3;   %Stance leg angle
@@ -346,7 +353,7 @@ else %Use default (bad) guess
     
     meanIntegral = 0.5*(bounds.phase(iphase).integral.lower + bounds.phase(iphase).integral.upper);
     guess.phase(iphase).integral = meanIntegral;
-
+    
 end
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -360,29 +367,25 @@ guess.parameter = mean(STEP_DIST);
 %                             Event Group                                 %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-% Continuous hip motion
+%%%% Heel-Strike Defect in Hip
 bounds.eventgroup(1).lower = zeros(1,4);
 bounds.eventgroup(1).upper = zeros(1,4);
 
-%Hip translation and velocity defect
-bounds.eventgroup(2).lower = zeros(1,4); 
+%%%% Heel-Strike Defect in Foot Two
+bounds.eventgroup(2).lower = zeros(1,4);
 bounds.eventgroup(2).upper = zeros(1,4);
 
-% swing foot continuity at heel strike 
-bounds.eventgroup(3).lower = zeros(1,4);
-bounds.eventgroup(3).upper = zeros(1,4);
+%%%% Heel-Strike Defect in Foot One  (Impact Location at origin)
+bounds.eventgroup(3).lower = zeros(1,2);
+bounds.eventgroup(3).upper = zeros(1,2);
 
-% swing foot continuity at toe off and periodic constraint
-bounds.eventgroup(4).lower = zeros(1,4); 
+%%%% Foot Two Initial State (Step vector + periodic constraint)
+bounds.eventgroup(4).lower = zeros(1,4);
 bounds.eventgroup(4).upper = zeros(1,4);
 
-% Foot One position at heel strike
-bounds.eventgroup(5).lower = zeros(1,2); 
-bounds.eventgroup(5).upper = zeros(1,2);
-
-%Speed
-bounds.eventgroup(6).lower = SPEED(LOW);
-bounds.eventgroup(6).upper = SPEED(UPP);
+%%%% Hip Translation (periodic constraint)
+bounds.eventgroup(5).lower = zeros(1,4);
+bounds.eventgroup(5).upper = zeros(1,4);
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %                            Mesh Parameters                              %
