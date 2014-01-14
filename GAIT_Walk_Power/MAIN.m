@@ -17,7 +17,7 @@ INPUT.physical.actuator_ank_saturate = 0.2; % (_)*(Length*Mass*Gravity)
 %%%% Constraints %%%%
 INPUT.constraint.duration_single_stance = [0.02; 2];
 INPUT.constraint.duration_double_stance = [0.02; 2];
-INPUT.constraint.speed = [0.05; 0.05];
+INPUT.constraint.speed = 2.1*[-1;1];
 INPUT.constraint.step_distance = [0.05; 1.0];
 INPUT.constraint.ground_slope = 0;
 INPUT.constraint.ground_curvature = 0;
@@ -35,7 +35,7 @@ INPUT.cost.actuator_rate_weight = 1e-2;   %1e-3
 INPUT.cost.method = 'CoT';  %{'Work','CoT'}
 
 %%%% Input / Output parameters %%%%
-INPUT.io.loadPrevSoln = true;
+INPUT.io.loadPrevSoln = false;
 INPUT.io.saveSolution = false;
 INPUT.io.createPlots = true;
 INPUT.io.runAnimation = true;
