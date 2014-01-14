@@ -89,7 +89,7 @@ end
 
 %Load the previous solution, if available
 if INPUT.io.loadPrevSoln
-    load(['oldSoln_' auxdata.cost.method '.mat']);
+    load(['oldSoln_Run_' auxdata.cost.method '.mat']);
 end
 
 %%%%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%%%%
@@ -399,7 +399,7 @@ if (strcmp(SOLVER,'ipopt') && output.result.nlpinfo==0) ||...
     if INPUT.io.saveSolution
         %Then successful  --  Save the solution:
         outputPrev = output;
-        save(['oldSoln_' auxdata.cost.method '.mat'],'outputPrev');
+        save(['oldSoln_Run_' auxdata.cost.method '.mat'],'outputPrev');
     end
 end
 
