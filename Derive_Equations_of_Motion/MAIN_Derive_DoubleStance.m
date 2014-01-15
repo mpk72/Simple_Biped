@@ -325,6 +325,18 @@ input.Power = Power;
 
 Write_Kinematics_DoubleStance(input);
 
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%                   Compute Linearized Equations                          %
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+
+[A, B] = getLinearizedEqns(States,Actuators,Dynamics);
+
+input.A = A;
+input.B = B;
+
+Write_Linearized_DoubleStance(input);
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %               Write getPower                                            %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
@@ -340,4 +352,9 @@ Parameters(2,:) = {'y2','(m) Foot Two vertical position wrt Foot One'};
 input.Intermediate = Intermediate;
 input.Parameters = Parameters;
 Write_getPower_DoubleStance(input)
+
+
+
+
+
 

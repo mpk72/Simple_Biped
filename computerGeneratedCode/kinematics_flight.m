@@ -4,7 +4,7 @@ function [Position, Velocity, Power, Energy] = kinematics_flight(States, Actuato
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_Flight()
-% 12-Jan-2014 20:02:09
+% 15-Jan-2014 13:50:15
 %
 %
 % Matthew Kelly 

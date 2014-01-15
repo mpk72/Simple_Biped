@@ -4,7 +4,7 @@ function [dStates, contactForces] = dynamics_single(States, Actuators, Parameter
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Dynamics_SingleStance()
-% 12-Jan-2014 20:02:01
+% 15-Jan-2014 13:47:04
 %
 %
 % Matthew Kelly 
