@@ -96,22 +96,9 @@ for iphase = 1:length(PHASE)
     MarkerSize = 15;
     MarkerLineWidth = 2;
     
-    Kin.x0 = D.position.hip.x;
-    Kin.y0 = D.position.hip.y;
-    Kin.dx0 = D.velocity.hip.x;
-    Kin.dy0 = D.velocity.hip.y;
-    Kin.x1 = D.position.footOne.x;
-    Kin.y1 = D.position.footOne.y;
-    Kin.dx1 = D.velocity.footOne.x;
-    Kin.dy1 = D.velocity.footOne.y;
-    Kin.x2 = D.position.footTwo.x;
-    Kin.y2 = D.position.footTwo.y;
-    Kin.dx2 = D.velocity.footTwo.x;
-    Kin.dy2 = D.velocity.footTwo.y;
-    
-    plot(Kin.x0,Kin.y0,Color_Hip,'LineWidth',LineWidth);
-    plot(Kin.x1,Kin.y1,Color_One,'LineWidth',LineWidth);
-    plot(Kin.x2,Kin.y2,Color_Two,'LineWidth',LineWidth);
+    plot(D.state.x0,D.state.y0,Color_Hip,'LineWidth',LineWidth);
+    plot(D.state.x1,D.state.y1,Color_One,'LineWidth',LineWidth);
+    plot(D.state.x2,D.state.y2,Color_Two,'LineWidth',LineWidth);
     xlabel('Horizontal Position (m)','FontSize',FontSize.xlabel)
     ylabel('Vertical Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Traces','FontSize',FontSize.title)
@@ -119,8 +106,8 @@ for iphase = 1:length(PHASE)
     %Plot the ground if possible:
     if isfield(plotInfo.parameters,'ground')
         GROUND = plotInfo.parameters.ground;
-        xBnd = [min([min(Kin.x0),min(Kin.x1),min(Kin.x2)]),...
-            max([max(Kin.x0),max(Kin.x1),max(Kin.x2)])];
+        xBnd = [min([min(D.state.x0),min(D.state.x1),min(D.state.x2)]),...
+            max([max(D.state.x0),max(D.state.x1),max(D.state.x2)])];
         xBnd(1) = xBnd(1) - 0.1*diff(xBnd);
         xBnd(2) = xBnd(2) + 0.1*diff(xBnd);
         plotGround(GROUND,xBnd,D.step.distance);
@@ -130,12 +117,12 @@ for iphase = 1:length(PHASE)
     end
     
     %Plot the start and end of each trace.
-    plot(Kin.x0(1),Kin.y0(1),[Color_Hip 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
-    plot(Kin.x1(1),Kin.y1(1),[Color_One 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
-    plot(Kin.x2(1),Kin.y2(1),[Color_Two 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
-    plot(Kin.x0(end),Kin.y0(end),[Color_Hip 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
-    plot(Kin.x1(end),Kin.y1(end),[Color_One 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
-    plot(Kin.x2(end),Kin.y2(end),[Color_Two 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x0(1),D.state.y0(1),[Color_Hip 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x1(1),D.state.y1(1),[Color_One 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x2(1),D.state.y2(1),[Color_Two 'o'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x0(end),D.state.y0(end),[Color_Hip 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x1(end),D.state.y1(end),[Color_One 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
+    plot(D.state.x2(end),D.state.y2(end),[Color_Two 'x'],'MarkerSize',MarkerSize,'LineWidth',MarkerLineWidth);
     
     axis equal
     
@@ -146,9 +133,9 @@ for iphase = 1:length(PHASE)
     set(figH,'Name','Kinematics','NumberTitle','off')
     
     subplot(3,1,1); hold on;
-    plot(D.time,Kin.x0,Color_Hip,'LineWidth',LineWidth);
-    plot(D.time,Kin.x1,Color_One,'LineWidth',LineWidth);
-    plot(D.time,Kin.x2,Color_Two,'LineWidth',LineWidth);
+    plot(D.time,D.state.x0,Color_Hip,'LineWidth',LineWidth);
+    plot(D.time,D.state.x1,Color_One,'LineWidth',LineWidth);
+    plot(D.time,D.state.x2,Color_Two,'LineWidth',LineWidth);
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Horizontal Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Horizontal Positions','FontSize',FontSize.title)
@@ -156,9 +143,9 @@ for iphase = 1:length(PHASE)
     dottedLine(D.time(1),axis,iphase);
     
     subplot(3,1,2); hold on;
-    plot(D.time,Kin.y0,Color_Hip,'LineWidth',LineWidth);
-    plot(D.time,Kin.y1,Color_One,'LineWidth',LineWidth);
-    plot(D.time,Kin.y2,Color_Two,'LineWidth',LineWidth);
+    plot(D.time,D.state.y0,Color_Hip,'LineWidth',LineWidth);
+    plot(D.time,D.state.y1,Color_One,'LineWidth',LineWidth);
+    plot(D.time,D.state.y2,Color_Two,'LineWidth',LineWidth);
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     ylabel('Vertical Position (m)','FontSize',FontSize.ylabel)
     title('Point Mass Vertical Positions','FontSize',FontSize.title)
@@ -166,9 +153,9 @@ for iphase = 1:length(PHASE)
     dottedLine(D.time(1),axis,iphase);
     
     subplot(3,1,3); hold on;
-    Speed.hip = sqrt(Kin.dx0.^2 + Kin.dy0.^2);
-    Speed.one = sqrt(Kin.dx1.^2 + Kin.dy1.^2);
-    Speed.two = sqrt(Kin.dx2.^2 + Kin.dy2.^2);
+    Speed.hip = sqrt(D.state.dx0.^2 + D.state.dy0.^2);
+    Speed.one = sqrt(D.state.dx1.^2 + D.state.dy1.^2);
+    Speed.two = sqrt(D.state.dx2.^2 + D.state.dy2.^2);
     plot(D.time,Speed.hip,Color_Hip,'LineWidth',LineWidth);
     plot(D.time,Speed.one,Color_One,'LineWidth',LineWidth);
     plot(D.time,Speed.two,Color_Two,'LineWidth',LineWidth);

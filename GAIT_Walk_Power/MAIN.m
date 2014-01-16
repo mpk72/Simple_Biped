@@ -27,7 +27,7 @@ INPUT.constraint.center_clearance = 0.02;
 INPUT.optimize.solver = 'snopt';   %{'ipopt', 'snopt'}
 INPUT.optimize.tol_mesh = 1e-3;
 INPUT.optimize.tol_opt = 1e-6;
-INPUT.optimize.max_mesh_iter = 3;
+INPUT.optimize.max_mesh_iter = 2;
 
 %%%% Cost Function %%%%
 INPUT.cost.actuator_weight = 1e-2;   %1e-3
@@ -35,8 +35,8 @@ INPUT.cost.actuator_rate_weight = 1e-2;   %1e-3
 INPUT.cost.method = 'CoT';  %{'Work','CoT'}
 
 %%%% Input / Output parameters %%%%
-INPUT.io.loadPrevSoln = false;
-INPUT.io.saveSolution = false;
+INPUT.io.loadPrevSoln = true;
+INPUT.io.saveSolution = true;
 INPUT.io.createPlots = true;
 INPUT.io.runAnimation = true;
 

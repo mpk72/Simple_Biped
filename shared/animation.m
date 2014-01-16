@@ -89,7 +89,6 @@ function plotFrame(Data,t,P)
 % axisData is a struct of things for formatting the axis
 %
 
-
 % Plotting parameters
 PtMass_MarkerSize = 30;
 Leg_LineWidth = 3;
@@ -100,9 +99,9 @@ Color_2 = 'b';
 Color_Hip = 'm';
 
 Time = Data.time;
-Foot1 = [Data.position.footOne.x, Data.position.footOne.y];
-Foot2 = [Data.position.footTwo.x, Data.position.footTwo.y];
-HipAll = [Data.position.hip.x, Data.position.hip.y];
+Foot1 = [Data.state.x1, Data.state.y1];
+Foot2 = [Data.state.x2, Data.state.y2];
+HipAll = [Data.state.x0, Data.state.y0];
 
 %Intepolate to get the right position
 F1 = interp1(Time,Foot1,t,'cubic');
@@ -158,13 +157,13 @@ yMax = -inf;
 
 for iphase = 1:length(Data)
     
-    xDat = [Data(iphase).position.footOne.x;
-        Data(iphase).position.footTwo.x;
-        Data(iphase).position.hip.x];
+    xDat = [Data(iphase).state.x1;
+        Data(iphase).state.x2;
+        Data(iphase).state.x0];
     
-    yDat = [Data(iphase).position.footOne.y;
-        Data(iphase).position.footTwo.y;
-        Data(iphase).position.hip.y];
+    yDat = [Data(iphase).state.y1;
+        Data(iphase).state.y2;
+        Data(iphase).state.y0];
     
     xMinTest = min(xDat);
     if xMinTest < xMin
