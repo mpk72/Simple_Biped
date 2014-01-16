@@ -1,6 +1,10 @@
 function animation(plotInfo,figNum)
 
+if nargin==2
 figH = figure(figNum);
+else
+    figH = figure(1000);
+end
 set(figH,'Name','Animation','NumberTitle','off')
 
 P = plotInfo.parameters;

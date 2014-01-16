@@ -7,12 +7,12 @@ dL1 = States(:,7); % (m/s) Leg One extension rate
 dL2 = States(:,8); % (m/s) Leg Two extensioin rate
 
 %For now, just do a PD controller on length:
-Kp1 = -10;
-Kd1 = 0;
+Kp1 = -25;
+Kd1 = -5;
 Lo1 = 0.5;
 
-Kp2 = -10;
-Kd2 = 0;
+Kp2 = -25;
+Kd2 = -20;
 Lo2 = 0.5;
 
 F1 = Kp1*(L1 - Lo1) + Kd1*dL1;

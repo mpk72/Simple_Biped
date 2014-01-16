@@ -6,7 +6,7 @@ for idxState=1:size(States,1)
 end %idxState
 fprintf(fid,'\n');
 
-if exist('Actuators','var')
+if exist('Actuators','var') 
     for idxAct=1:size(Actuators,1)
         fprintf(fid,[Actuators{idxAct,1} ' = Actuators(:,' num2str(idxAct) '); %% ' ...
             Actuators{idxAct,2} '\n']);

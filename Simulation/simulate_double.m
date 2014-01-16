@@ -1,5 +1,5 @@
-function [Data, Final] = simulate_single_one(Initial)
-%function [Data, Final] = SIMULATE_SINGLE_ONE(Initial)
+function [Data, Final] = simulate_double(Initial)
+%function [Data, Final] = SIMULATE_DOUBLE(Initial)
 %
 %FUNCTION:
 %   This function runs a simulation in single stance until one of the
@@ -69,20 +69,22 @@ function [Data, Final] = simulate_single_one(Initial)
 %       data = Data.(fieldNames)(end);
 %
 
+X_shift = Initial.data.x1;
+Y_shift = Initial.data.y1;
+
 INITIAL_STATE = [...
-    Initial.data.th1;
-    Initial.data.th2;
-    Initial.data.L1;
-    Initial.data.L2;
-    Initial.data.dth1;
-    Initial.data.dth2;
-    Initial.data.dL1;
-    Initial.data.dL2;
+    Initial.data.x0 - X_shift;
+    Initial.data.y0 - Y_shift;
+    Initial.data.dx0;
+    Initial.data.dy0;
     ];
 
 TSPAN = Initial.data.time + [0, Initial.duration];
 
 P_Dyn = Initial.parameters.dynamics;
+P_Dyn.x2 = Initial.data.x2 - X_shift;
+P_Dyn.y2 = Initial.data.y2 - Y_shift;
+
 P_Ctl = Initial.parameters.control;
 ODEFUN = @(t,y)rhs(t,y,P_Dyn,P_Ctl);
 
@@ -91,7 +93,7 @@ OPTIONS = odeset(...
     'RelTol', Initial.tolerance,...
     'AbsTol', Initial.tolerance,...
     'Vectorized', 'on',...
-    'Events', @(t,y)event_single(t,y,P_Event));
+    'Events', @(t,y)event_double(t,y,P_Event));
 
 sol = ode45(ODEFUN,TSPAN,INITIAL_STATE,OPTIONS);
 
@@ -102,12 +104,10 @@ y = deval(sol,t);
 
 %Now format things for analysis:
 States = y';
-Actuators = control_single(States, P_Ctl);
-Data = formatData(t', 'S1', States, Actuators, P_Dyn);
+Actuators = control_double(States, P_Dyn, P_Ctl);
+Data = formatData(t', 'D', States, Actuators, P_Dyn);
 
 %Apply translatation so that phases stitch together
-X_shift = Initial.data.x1;
-Y_shift = Initial.data.y1;
 E_shift = Y_shift*(2*P_Dyn.m+P_Dyn.M)*P_Dyn.g; %Shift energy datum
 Data.state.x1 = Data.state.x1 + X_shift;
 Data.state.y1 = Data.state.y1 + Y_shift;   
@@ -134,8 +134,8 @@ end
 function dy = rhs(~, y, P_Dyn, P_Ctl)
 States = y';
 
-Actuators = control_single(States, P_Ctl);
-dStates = dynamics_single(States, Actuators, P_Dyn);
+Actuators = control_double(States, P_Dyn, P_Ctl);
+dStates = dynamics_double(States, Actuators, P_Dyn);
 
 dy = dStates';
 end

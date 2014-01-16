@@ -4,7 +4,7 @@ function [A, B] = linearized_double(States, Actuators, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Linearized_DoubleStance()
-% 15-Jan-2014 13:44:53
+% 16-Jan-2014 12:31:10
 %
 %
 % Matthew Kelly 

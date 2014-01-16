@@ -2,7 +2,9 @@ function plotSolution(plotInfo,figNums)
 
 %Creates a few plots to show the states of the system.
 
-%figNums must be an integer vector of length 3;
+if nargin==1
+    figNums = 1001:1009;
+end
 
 Color_One = 'r';
 Color_Two = 'b';
@@ -17,15 +19,10 @@ FontSize.ylabel = 14;
 
 LineWidth = 2;
 
-%Clear all of the figures
-for i=1:length(figNums)
-    figure(figNums(i)); clf;
-end
-
 PHASE = plotInfo.parameters.phase;
 
 energyDatum = [];
-for iphase = 1:length(PHASE)
+for iphase = 1:length(plotInfo)
     
     D = plotInfo.data(iphase);
     
@@ -33,7 +30,7 @@ for iphase = 1:length(PHASE)
     %                           Leg Angles                                    %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     
-    figH = figure(figNums(1));
+    figH = figure(figNums(1)); if iphase==1, clf; end
     set(figH,'Name','Leg Angles','NumberTitle','off')
     
     %Leg One Angle
@@ -61,7 +58,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         Leg Lengths                                     %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(2));
+    figH = figure(figNums(2)); if iphase==1, clf; end
     set(figH,'Name','Leg Lengths','NumberTitle','off')
     
     subplot(3,1,1); hold on;
@@ -89,7 +86,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         Mass Traces                                     %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(3)); hold on;
+    figH = figure(figNums(3));  if iphase==1, clf; end; hold on;
     set(figH,'Name','Point Traces','NumberTitle','off')
     
     %Used for plotting the start (o) and end (x) markers for the traces
@@ -129,7 +126,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                     Position and Velocity                               %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(4));
+    figH = figure(figNums(4)); if iphase==1, clf; end; 
     set(figH,'Name','Kinematics','NumberTitle','off')
     
     subplot(3,1,1); hold on;
@@ -169,7 +166,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                              Actuators                                  %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(5));
+    figH = figure(figNums(5)); if iphase==1, clf; end; 
     set(figH,'Name','Actuators','NumberTitle','off')
     
     subplot(3,1,1); hold on;
@@ -198,7 +195,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                              Power                                      %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(6));
+    figH = figure(figNums(6)); if iphase==1, clf; end; 
     set(figH,'Name','Power','NumberTitle','off')
     
     subplot(3,1,1); hold on;
@@ -227,7 +224,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         Contact Forces                                  %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(7));
+    figH = figure(figNums(7)); if iphase==1, clf; end; 
     set(figH,'Name','Contact Forces','NumberTitle','off')
     
     subplot(2,1,1); hold on;
@@ -238,11 +235,12 @@ for iphase = 1:length(PHASE)
     xlabel('Time (s)','FontSize',FontSize.xlabel)
     legend('Foot One', 'Foot Two')
     dottedLine(D.time(1),axis,iphase);
+    if isfield(D.contact,'Bnd1')
     plot(D.time([1,end]),D.contact.Bnd1(1)*[1,1],[Color_One '--'],'LineWidth',LineWidth)
     plot(D.time([1,end]),D.contact.Bnd1(2)*[1,1],[Color_One '--'],'LineWidth',LineWidth)
     plot(D.time([1,end]),D.contact.Bnd2(1)*[1,1],[Color_Two '--'],'LineWidth',LineWidth)
     plot(D.time([1,end]),D.contact.Bnd2(2)*[1,1],[Color_Two '--'],'LineWidth',LineWidth)
-    
+    end
     subplot(2,1,2); hold on;
     plot(D.time,D.contact.Mag1,Color_One,'LineWidth',LineWidth+1);
     plot(D.time,D.contact.Mag2,Color_Two,'LineWidth',LineWidth+1);
@@ -255,7 +253,7 @@ for iphase = 1:length(PHASE)
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     %                         System Energy                                   %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-    figH = figure(figNums(8));
+    figH = figure(figNums(8)); if iphase==1, clf; end; 
     set(figH,'Name','System Energy','NumberTitle','off')
     hold on;
     if isempty(energyDatum)
@@ -274,7 +272,7 @@ for iphase = 1:length(PHASE)
     %                         Integrand                                       %
     %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
     if isfield(D,'integrand')
-        figH = figure(figNums(9));
+        figH = figure(figNums(9)); if iphase==1, clf; end; 
         set(figH,'Name','Integrand','NumberTitle','off')
         
         subplot(2,1,1); hold on;

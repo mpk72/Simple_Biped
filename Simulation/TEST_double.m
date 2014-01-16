@@ -1,4 +1,4 @@
-%TEST_Single_One
+%TEST_Double
 %
 % Simple test of dynamics for single stance on foot one:
 %
@@ -14,10 +14,17 @@ Initial.data.dL1 = 0;
 Initial.data.dL2 = 0;
 
 Initial.data.time = 0;
-Initial.data.x1 = 0;
-Initial.data.y1 = 0;
+Initial.data.x0 = 0.2;
+Initial.data.y0 = 0.4;
+Initial.data.dx0 = 0;
+Initial.data.dy0 = 0;
+Initial.data.x1 = -0.1;
+Initial.data.y1 = 0.3;
 Initial.data.dx1 = 0;
 Initial.data.dy1 = 0;
+Initial.data.x2 = 0.3;
+Initial.data.y2 = 0.1;
+
 
 Initial.duration = 5;
 Initial.tolerance = 1e-10;
@@ -31,11 +38,11 @@ Initial.parameters.dynamics = P_Dyn;
 Initial.parameters.control = [];
 Initial.parameters.events = [];
 
-[Data, Final] = simulate_single_one(Initial);
+[Data, Final] = simulate_double(Initial);
 
 plotInfo.data = Data;
 plotInfo.parameters.dynamics = P_Dyn;
-plotInfo.parameters.phase = {'S1'};
+plotInfo.parameters.phase = {'D'};
 plotInfo.parameters.animation.timeRate = 0.4;
 plotSolution(plotInfo);
 animation(plotInfo);

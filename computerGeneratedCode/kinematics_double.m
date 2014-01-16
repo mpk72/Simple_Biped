@@ -4,7 +4,7 @@ function [Kinematics, Power, Energy] = kinematics_double(States, Actuators, Para
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Kinematics_DoubleStance()
-% 15-Jan-2014 13:44:53
+% 16-Jan-2014 12:31:10
 %
 %
 % Matthew Kelly 
@@ -15,9 +15,6 @@ x0 = States(:,1); % (m) Hip horizontal position wrt Foot One
 y0 = States(:,2); % (m) Hip vertical position wrt Foot One
 dx0 = States(:,3); % (m) Hip horizontal velocity
 dy0 = States(:,4); % (m) Hip vertical velocity
-
-F1 = Actuators(:,1); % (N) Compresive axial force in Leg One
-F2 = Actuators(:,2); % (N) Compresive axial force in Leg Two
 
 m = Parameters.m; % (kg) foot mass
 M = Parameters.M; % (kg) Hip mass
@@ -43,11 +40,16 @@ Kinematics.th2 = th2;
 Kinematics.dth1 = dth1;
 Kinematics.dth2 = dth2;
 
-Power.legOne = F1.*dL1;
-Power.legTwo = F2.*dL2;
+if nargout > 1 
+    F1 = Actuators(:,1); % (N) Compresive axial force in Leg One
+    F2 = Actuators(:,2); % (N) Compresive axial force in Leg Two
 
-Energy.Potential = g.*(M.*y0 + m.*y2);
-Energy.Kinetic = (M.*(dx0.^2 + dy0.^2))./2;
-Energy.Total = Energy.Potential + Energy.Kinetic;
+    Power.legOne = F1.*dL1;
+    Power.legTwo = F2.*dL2;
+
+    Energy.Potential = g.*(M.*y0 + m.*y2);
+    Energy.Kinetic = (M.*(dx0.^2 + dy0.^2))./2;
+    Energy.Total = Energy.Potential + Energy.Kinetic;
+end
 
 end
