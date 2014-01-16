@@ -4,7 +4,7 @@ function Power = getPower_double(States, Actuators, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_getPower_DoubleStance()
-% 16-Jan-2014 12:31:10
+% 16-Jan-2014 13:15:11
 %
 %
 % Matthew Kelly 

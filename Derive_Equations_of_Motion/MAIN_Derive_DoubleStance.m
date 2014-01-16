@@ -189,7 +189,7 @@ ddr2 = ddx2*i + ddy2*j;         % Acceleration of Foot Two (Absolute)
 %                Linear Momentum Balance on Foot One                      %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-sum_of_forces = simplify(V1*j + H1*i - m*g*j - F1*a1);
+sum_of_forces = simplify(V1*j + H1*i - m*g*j + F1*a1);
 linear_momentum_rate = m*ddr1;
 
 Double_LMB_F1 = simplify(sum_of_forces - linear_momentum_rate);
@@ -201,7 +201,7 @@ Double_LMB_F1_j = dot(Double_LMB_F1,j);
 %                Linear Momentum Balance on Hip                           %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-sum_of_forces = simplify(F1*a1 + F2*a2 - M*g*j);
+sum_of_forces = simplify(-F1*a1 - F2*a2 - M*g*j);
 linear_momentum_rate = M*ddr0;
 
 Double_LMB_H = simplify(sum_of_forces - linear_momentum_rate);
@@ -213,7 +213,7 @@ Double_LMB_H_b1 = simplify(dot(Double_LMB_H,b1));
 %                Linear Momentum Balance on Foot Two                      %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
-sum_of_forces = simplify(-m*g*j - F2*a2 + H2*i + V2*j);
+sum_of_forces = simplify(-m*g*j + F2*a2 + H2*i + V2*j);
 linear_momentum_rate = m*ddr2;
 
 Double_LMB_F2 = simplify(sum_of_forces - linear_momentum_rate);

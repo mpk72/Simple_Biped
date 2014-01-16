@@ -4,7 +4,7 @@ function [A, B] = linearized_double(States, Actuators, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Linearized_DoubleStance()
-% 16-Jan-2014 12:31:10
+% 16-Jan-2014 13:15:11
 %
 %
 % Matthew Kelly 
@@ -31,12 +31,12 @@ B = zeros(4,2,Nt);
 
 A(1,3,:) = ones(1,1,Nt);
 A(2,4,:) = ones(1,1,Nt);
-A(3,1,:) = -(F1.*L2 + F2.*L1)./(L1.*L2.*M);
-A(4,2,:) = -(F1.*L2 + F2.*L1)./(L1.*L2.*M);
+A(3,1,:) = (F1.*L2 + F2.*L1)./(L1.*L2.*M);
+A(4,2,:) = (F1.*L2 + F2.*L1)./(L1.*L2.*M);
 
-B(3,1,:) = -x0./(L1.*M);
-B(3,2,:) = -(x0 - x2)./(L2.*M);
-B(4,1,:) = -y0./(L1.*M);
-B(4,2,:) = -(y0 - y2)./(L2.*M);
+B(3,1,:) = x0./(L1.*M);
+B(3,2,:) = (x0 - x2)./(L2.*M);
+B(4,1,:) = y0./(L1.*M);
+B(4,2,:) = (y0 - y2)./(L2.*M);
 
 end

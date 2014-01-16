@@ -22,6 +22,6 @@ F2 = Kp2*(L2 - Lo2) + Kd2*dL2;
 
 n = length(F1);
 
-Actuators = -[F1, F2, zeros(n,1)];
+Actuators = [F1, F2, zeros(n,1)];
 
 end

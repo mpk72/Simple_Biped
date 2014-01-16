@@ -4,7 +4,7 @@ function [A, B] = linearized_flight(States, Actuators, Parameters)
 % Computer Generated File -- DO NOT EDIT 
 %
 % This function was created by the function Write_Linearized_Flight()
-% 15-Jan-2014 13:50:15
+% 16-Jan-2014 13:16:36
 %
 %
 % Matthew Kelly 
